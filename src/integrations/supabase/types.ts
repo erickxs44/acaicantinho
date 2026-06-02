@@ -14,7 +14,181 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          telefone: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          telefone?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      despesas: {
+        Row: {
+          created_at: string
+          descricao: string
+          id: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          id?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          id?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      fiados_pagamentos: {
+        Row: {
+          created_at: string
+          fiado_id: string
+          id: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          fiado_id: string
+          id?: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          created_at?: string
+          fiado_id?: string
+          id?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiados_pagamentos_fiado_id_fkey"
+            columns: ["fiado_id"]
+            isOneToOne: false
+            referencedRelation: "fiados_registros"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fiados_registros: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          descricao: string
+          id: string
+          paid_at: string | null
+          status: string
+          user_id: string
+          valor_pago: number
+          valor_total: number
+          venda_id: string | null
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          descricao: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          user_id: string
+          valor_pago?: number
+          valor_total: number
+          venda_id?: string | null
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          descricao?: string
+          id?: string
+          paid_at?: string | null
+          status?: string
+          user_id?: string
+          valor_pago?: number
+          valor_total?: number
+          venda_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fiados_registros_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fiados_registros_venda_id_fkey"
+            columns: ["venda_id"]
+            isOneToOne: false
+            referencedRelation: "vendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vendas: {
+        Row: {
+          cliente_id: string | null
+          created_at: string
+          id: string
+          is_fiado: boolean
+          produto: string
+          tipo_pagamento: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          cliente_id?: string | null
+          created_at?: string
+          id?: string
+          is_fiado?: boolean
+          produto: string
+          tipo_pagamento: string
+          user_id: string
+          valor: number
+        }
+        Update: {
+          cliente_id?: string | null
+          created_at?: string
+          id?: string
+          is_fiado?: boolean
+          produto?: string
+          tipo_pagamento?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendas_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
