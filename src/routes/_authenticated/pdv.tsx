@@ -1,33 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
-import { brl } from "@/lib/format";
+import { brl, dateBR } from "@/lib/format";
 import { toast } from "sonner";
-import { Trash2, Plus, X, Search, CreditCard, Banknote, Smartphone, ReceiptText } from "lucide-react";
+import { Plus, X, Search, CreditCard, Banknote, Smartphone, ReceiptText, ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pdv")({
   head: () => ({ meta: [{ title: "PDV — Cantinho do Açaí" }] }),
   component: PDV,
 });
 
-type Produto = { nome: string; preco: number; emoji: string };
-const PRODUTOS: Produto[] = [
-  { nome: "Açaí 300ml", preco: 12, emoji: "🍇" },
-  { nome: "Açaí 500ml", preco: 18, emoji: "🥤" },
-  { nome: "Açaí 700ml", preco: 25, emoji: "🍨" },
-  { nome: "Combo Casal", preco: 32, emoji: "💜" },
-  { nome: "Açaí Família", preco: 45, emoji: "🍱" },
-  { nome: "Vitamina", preco: 14, emoji: "🥛" },
-  { nome: "Cone Trufado", preco: 10, emoji: "🍦" },
-  { nome: "Tigela Fit", preco: 22, emoji: "🥗" },
-];
 type Pgto = "pix" | "cartao" | "dinheiro" | "fiado";
 type Cliente = { id: string; nome: string; telefone: string | null };
-type Item = Produto & { qtd: number };
+type Venda = { id: string; produto: string; valor: number; tipo_pagamento: string; created_at: string };
 
 function PDV() {
-  const [cart, setCart] = useState<Item[]>([]);
   const [pgto, setPgto] = useState<Pgto>("pix");
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [busca, setBusca] = useState("");
@@ -37,20 +25,26 @@ function PDV() {
   const [novoTel, setNovoTel] = useState("");
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => { loadClientes(); }, []);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pedidoNome, setPedidoNome] = useState("");
+  const [pedidoValor, setPedidoValor] = useState("");
+
+  const [recentSales, setRecentSales] = useState<Venda[]>([]);
+
+  useEffect(() => { 
+    loadClientes(); 
+    loadRecentSales();
+  }, []);
+
   async function loadClientes() {
     const { data } = await supabase.from("clientes").select("id,nome,telefone").order("nome");
     setClientes(data ?? []);
   }
 
-  const total = useMemo(() => cart.reduce((s, i) => s + i.preco * i.qtd, 0), [cart]);
-
-  const add = (p: Produto) => setCart((c) => {
-    const ex = c.find((i) => i.nome === p.nome);
-    return ex ? c.map((i) => i.nome === p.nome ? { ...i, qtd: i.qtd + 1 } : i) : [...c, { ...p, qtd: 1 }];
-  });
-  const dec = (n: string) => setCart((c) => c.flatMap((i) => i.nome === n ? (i.qtd > 1 ? [{ ...i, qtd: i.qtd - 1 }] : []) : [i]));
-  const rm = (n: string) => setCart((c) => c.filter((i) => i.nome !== n));
+  async function loadRecentSales() {
+    const { data } = await supabase.from("vendas").select("id,produto,valor,tipo_pagamento,created_at").order("created_at", { ascending: false }).limit(10);
+    setRecentSales(data ?? []);
+  }
 
   const filtered = busca ? clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase())) : clientes;
 
@@ -66,17 +60,19 @@ function PDV() {
   };
 
   const finalizar = async () => {
-    if (cart.length === 0) return toast.error("Carrinho vazio");
+    if (!pedidoNome.trim()) return toast.error("Informe o nome do pedido");
+    const valorNum = parseFloat(pedidoValor.replace(",", "."));
+    if (!valorNum || valorNum <= 0) return toast.error("Informe um valor válido");
     if (pgto === "fiado" && !clienteSel) return toast.error("Selecione um cliente para o fiado");
+    
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user!.id;
-      const produto = cart.map((i) => `${i.qtd}x ${i.nome}`).join(", ");
       const isFiado = pgto === "fiado";
 
       const { data: venda, error: e1 } = await supabase.from("vendas").insert({
-        user_id: userId, produto, valor: total, tipo_pagamento: pgto,
+        user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: pgto,
         cliente_id: clienteSel?.id ?? null, is_fiado: isFiado,
       }).select().single();
       if (e1) throw e1;
@@ -84,162 +80,174 @@ function PDV() {
       if (isFiado) {
         const { error: e2 } = await supabase.from("fiados_registros").insert({
           user_id: userId, cliente_id: clienteSel!.id, venda_id: venda.id,
-          descricao: produto, valor_total: total,
+          descricao: pedidoNome.trim(), valor_total: valorNum,
         });
         if (e2) throw e2;
       }
-      toast.success(`Venda de ${brl(total)} registrada!`);
-      setCart([]); setClienteSel(null); setPgto("pix");
+      toast.success(`Venda de ${brl(valorNum)} registrada!`);
+      
+      // Reset form
+      setPedidoNome(""); setPedidoValor(""); setClienteSel(null); setPgto("pix");
+      setModalOpen(false);
+      loadRecentSales();
+      window.dispatchEvent(new CustomEvent("data:changed"));
     } catch (e: any) {
       toast.error(e.message);
     } finally { setSaving(false); }
   };
 
   return (
-    <div className="grid lg:grid-cols-[1fr_400px] gap-6 max-w-7xl mx-auto">
-      <section>
-        <h1 className="text-3xl font-extrabold mb-1">PDV</h1>
-        <p className="text-white/60 mb-6">Selecione os produtos</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {PRODUTOS.map((p, i) => (
-            <motion.button
-              key={p.nome}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.04 }}
-              whileHover={{ y: -3, scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => add(p)}
-              className="glass-strong rounded-2xl p-4 text-left hover:glow transition"
-            >
-              <div className="text-3xl mb-2">{p.emoji}</div>
-              <div className="font-semibold leading-tight">{p.nome}</div>
-              <div className="mt-2 text-emerald-brand font-bold">{brl(p.preco)}</div>
-            </motion.button>
-          ))}
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold mb-1">PDV Simplificado</h1>
+          <p className="text-white/60">Registros rápidos de vendas</p>
         </div>
-      </section>
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          onClick={() => setModalOpen(true)}
+          className="px-6 py-3 rounded-2xl gradient-primary font-bold text-white flex items-center gap-2 glow hover:brightness-110"
+        >
+          <Plus className="h-5 w-5" /> Registrar Venda
+        </motion.button>
+      </header>
 
-      <aside className="glass-strong rounded-3xl p-5 h-fit lg:sticky lg:top-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Carrinho</h2>
-          {cart.length > 0 && <button onClick={() => setCart([])} className="text-xs text-white/50 hover:text-destructive">Limpar</button>}
-        </div>
-
-        <div className="space-y-2 max-h-72 overflow-auto pr-1">
-          <AnimatePresence>
-            {cart.length === 0 ? (
-              <p className="text-sm text-white/40 text-center py-8">Nenhum item</p>
-            ) : cart.map((i) => (
-              <motion.div
-                key={i.nome}
-                layout
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="glass rounded-xl p-3 flex items-center gap-2"
-              >
-                <span className="text-xl">{i.emoji}</span>
+      <div className="glass-strong rounded-3xl p-6 min-h-[400px]">
+        <h2 className="text-xl font-bold mb-4">Vendas Recentes</h2>
+        <div className="space-y-3">
+          {recentSales.length === 0 ? (
+            <p className="text-center text-white/40 py-12">Nenhuma venda recente.</p>
+          ) : (
+            recentSales.map((v) => (
+              <motion.div key={v.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-4 flex items-center gap-4">
+                <div className="h-10 w-10 rounded-xl bg-profit/20 text-emerald-brand flex items-center justify-center">
+                  <ArrowUpRight className="h-5 w-5" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold truncate">{i.nome}</div>
-                  <div className="text-xs text-emerald-brand">{brl(i.preco * i.qtd)}</div>
+                  <div className="font-bold truncate">{v.produto}</div>
+                  <div className="text-xs text-white/50">{dateBR(v.created_at)} • {v.tipo_pagamento}</div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button onClick={() => dec(i.nome)} className="h-7 w-7 rounded-lg bg-white/10 hover:bg-white/20">−</button>
-                  <span className="w-6 text-center text-sm font-bold">{i.qtd}</span>
-                  <button onClick={() => add(i)} className="h-7 w-7 rounded-lg bg-white/10 hover:bg-white/20">+</button>
-                  <button onClick={() => rm(i.nome)} className="ml-1 text-white/40 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
-                </div>
+                <div className="font-extrabold text-emerald-brand text-lg">{brl(v.valor)}</div>
               </motion.div>
-            ))}
-          </AnimatePresence>
+            ))
+          )}
         </div>
+      </div>
 
-        <div className="border-t border-glass-border pt-4">
-          <div className="text-xs font-semibold text-white/70 uppercase tracking-wider mb-2">Pagamento</div>
-          <div className="grid grid-cols-4 gap-2">
-            {([
-              { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
-              { v: "cartao", l: "Cartão", i: <CreditCard className="h-4 w-4" /> },
-              { v: "dinheiro", l: "Dinh.", i: <Banknote className="h-4 w-4" /> },
-              { v: "fiado", l: "Fiado", i: <ReceiptText className="h-4 w-4" /> },
-            ] as const).map((o) => (
-              <button
-                key={o.v}
-                onClick={() => setPgto(o.v)}
-                className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  pgto === o.v ? "gradient-primary text-white glow" : "glass text-white/70 hover:text-white"
-                }`}
-              >
-                {o.i} {o.l}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {pgto === "fiado" && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
-            {clienteSel ? (
-              <div className="glass rounded-xl p-3 flex items-center justify-between">
+      <AnimatePresence>
+        {modalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            onClick={() => setModalOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 80, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 80, opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 260, damping: 24 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative"
+            >
+              <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white"><X className="h-5 w-5" /></button>
+              
+              <h2 className="text-2xl font-bold">Nova Venda</h2>
+              
+              <div className="space-y-3">
                 <div>
-                  <div className="text-xs text-white/50">Cliente</div>
-                  <div className="font-semibold">{clienteSel.nome}</div>
+                  <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Pedido / Produto</label>
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none" />
                 </div>
-                <button onClick={() => setClienteSel(null)}><X className="h-4 w-4 text-white/60" /></button>
+                <div>
+                  <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Valor</label>
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none font-bold text-lg" />
+                </div>
               </div>
-            ) : (
-              <>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                  <input
-                    value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
-                    placeholder="Buscar cliente..."
-                    className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-input border border-glass-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div className="max-h-40 overflow-auto space-y-1">
-                  {filtered.length === 0 ? (
-                    <p className="text-xs text-white/40 text-center py-4">Nenhum cliente</p>
-                  ) : filtered.map((c) => (
-                    <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-white/10 transition">
-                      <div className="text-sm font-semibold">{c.nome}</div>
-                      {c.telefone && <div className="text-xs text-white/50">{c.telefone}</div>}
+
+              <div className="border-t border-glass-border pt-4">
+                <div className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Pagamento</div>
+                <div className="grid grid-cols-4 gap-2">
+                  {([
+                    { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
+                    { v: "cartao", l: "Cartão", i: <CreditCard className="h-4 w-4" /> },
+                    { v: "dinheiro", l: "Dinh.", i: <Banknote className="h-4 w-4" /> },
+                    { v: "fiado", l: "Fiado", i: <ReceiptText className="h-4 w-4" /> },
+                  ] as const).map((o) => (
+                    <button
+                      key={o.v}
+                      onClick={() => setPgto(o.v)}
+                      className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-semibold transition ${
+                        pgto === o.v ? "gradient-primary text-white glow" : "glass text-white/70 hover:text-white"
+                      }`}
+                    >
+                      {o.i} {o.l}
                     </button>
                   ))}
                 </div>
-                {novoCliente ? (
-                  <div className="glass rounded-xl p-3 space-y-2">
-                    <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
-                    <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
-                    <div className="flex gap-2">
-                      <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-sm font-semibold">Cadastrar</button>
-                      <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-sm">Cancelar</button>
+              </div>
+
+              {pgto === "fiado" && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
+                  {clienteSel ? (
+                    <div className="glass rounded-xl p-3 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-white/50">Cliente</div>
+                        <div className="font-semibold">{clienteSel.nome}</div>
+                      </div>
+                      <button onClick={() => setClienteSel(null)}><X className="h-4 w-4 text-white/60" /></button>
                     </div>
-                  </div>
-                ) : (
-                  <button onClick={() => setNovoCliente(true)} className="w-full py-2 rounded-xl glass text-sm flex items-center justify-center gap-1 text-white/70 hover:text-white">
-                    <Plus className="h-3 w-3" /> Novo cliente
-                  </button>
-                )}
-              </>
-            )}
+                  ) : (
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                        <input
+                          value={busca}
+                          onChange={(e) => setBusca(e.target.value)}
+                          placeholder="Buscar cliente..."
+                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                        />
+                      </div>
+                      <div className="max-h-32 overflow-auto space-y-1">
+                        {filtered.length === 0 ? (
+                          <p className="text-xs text-white/40 text-center py-4">Nenhum cliente</p>
+                        ) : filtered.map((c) => (
+                          <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-white/10 transition">
+                            <div className="text-sm font-semibold">{c.nome}</div>
+                            {c.telefone && <div className="text-xs text-white/50">{c.telefone}</div>}
+                          </button>
+                        ))}
+                      </div>
+                      {novoCliente ? (
+                        <div className="glass rounded-xl p-3 space-y-2">
+                          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
+                          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
+                          <div className="flex gap-2">
+                            <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-sm font-semibold">Cadastrar</button>
+                            <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-sm">Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button onClick={() => setNovoCliente(true)} className="w-full py-3 rounded-xl glass text-sm flex items-center justify-center gap-1 text-white/70 hover:text-white font-semibold">
+                          <Plus className="h-4 w-4" /> Novo cliente
+                        </button>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              )}
+
+              <button
+                onClick={finalizar}
+                disabled={saving}
+                className="w-full py-4 rounded-xl gradient-primary text-white font-bold text-lg glow hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40"
+              >
+                {saving ? "Salvando..." : "Confirmar Venda"}
+              </button>
+            </motion.div>
           </motion.div>
         )}
-
-        <div className="border-t border-glass-border pt-4 flex items-center justify-between">
-          <span className="text-sm text-white/60">Total</span>
-          <span className="text-3xl font-extrabold text-gradient">{brl(total)}</span>
-        </div>
-
-        <button
-          onClick={finalizar}
-          disabled={saving || cart.length === 0}
-          className="w-full py-4 rounded-xl gradient-primary text-white font-bold text-lg glow hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40"
-        >
-          {saving ? "Salvando..." : "Finalizar Venda"}
-        </button>
-      </aside>
+      </AnimatePresence>
     </div>
   );
 }
+

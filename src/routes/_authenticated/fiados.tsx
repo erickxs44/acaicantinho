@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, dateBR } from "@/lib/format";
 import { toast } from "sonner";
-import { CheckCircle2, ChevronDown, Plus, X, ShoppingBag, Wallet } from "lucide-react";
+import { CheckCircle2, FileText, Plus, X, ShoppingBag, Wallet, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/fiados")({
   head: () => ({ meta: [{ title: "Fiados — Cantinho do Açaí" }] }),
@@ -27,10 +27,12 @@ function Fiados() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [fiados, setFiados] = useState<Fiado[]>([]);
   const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  
+  const [reportOpen, setReportOpen] = useState<string | null>(null);
   const [payOpen, setPayOpen] = useState<{ cli: Cliente; total: number } | null>(null);
   const [payAmount, setPayAmount] = useState("");
-  const [newOpen, setNewOpen] = useState(false);
+  
+  const [newClientOpen, setNewClientOpen] = useState(false);
 
   const load = useCallback(async () => {
     const [c, f, p] = await Promise.all([
@@ -45,25 +47,23 @@ function Fiados() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Agrupar por cliente — inclui clientes com qualquer histórico
   const grouped = useMemo(() => {
     const map = new Map<string, { cli: Cliente; itens: Fiado[]; pagos: Pagamento[]; emAberto: number; totalComprado: number; totalPago: number }>();
+    for (const cli of clientes) {
+      map.set(cli.id, { cli, itens: [], pagos: [], emAberto: 0, totalComprado: 0, totalPago: 0 });
+    }
     for (const f of fiados) {
-      const cli = clientes.find((c) => c.id === f.cliente_id);
-      if (!cli) continue;
-      const e = map.get(cli.id) ?? { cli, itens: [], pagos: [], emAberto: 0, totalComprado: 0, totalPago: 0 };
+      const e = map.get(f.cliente_id);
+      if (!e) continue;
       e.itens.push(f);
       e.totalComprado += Number(f.valor_total);
       e.totalPago += Number(f.valor_pago);
       if (f.status === "aberto") e.emAberto += Number(f.valor_total) - Number(f.valor_pago);
-      map.set(cli.id, e);
     }
     for (const p of pagamentos) {
       const f = fiados.find((x) => x.id === p.fiado_id);
       if (!f) continue;
-      const cli = clientes.find((c) => c.id === f.cliente_id);
-      if (!cli) continue;
-      const e = map.get(cli.id);
+      const e = map.get(f.cliente_id);
       if (!e) continue;
       e.pagos.push(p);
     }
@@ -115,142 +115,167 @@ function Fiados() {
       restante -= aplicar;
     }
     toast.success(`Pagamento de ${brl(n)} registrado!`);
-    setPayOpen(null); setPayAmount(""); load();
+    setPayOpen(null); setPayAmount(""); 
+    if (reportOpen) { setReportOpen(null); } // close report if open to refresh cleanly
+    load();
     window.dispatchEvent(new CustomEvent("data:changed"));
   };
 
+  const excluirCliente = async (clienteId: string, nome: string) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o cliente "${nome}"? Todo o histórico dele será apagado definitivamente.`)) {
+      return;
+    }
+    try {
+      const { error } = await supabase.from("clientes").delete().eq("id", clienteId);
+      if (error) throw error;
+      toast.success("Cliente excluído com sucesso");
+      load();
+    } catch (e: any) {
+      toast.error("Erro ao excluir: " + e.message);
+    }
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-5xl mx-auto">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold">Fiados</h1>
-          <p className="text-white/60">Histórico completo por cliente</p>
+          <h1 className="text-3xl font-extrabold">CRM & Fiados</h1>
+          <p className="text-white/60">Gestão de clientes e saldos</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
-          onClick={() => setNewOpen(true)}
-          className="px-4 py-2.5 rounded-xl gradient-primary font-semibold text-sm flex items-center gap-2 glow"
+          onClick={() => setNewClientOpen(true)}
+          className="px-5 py-3 rounded-2xl gradient-primary font-bold text-sm text-white flex items-center gap-2 glow"
         >
-          <Plus className="h-4 w-4" /> Novo Fiado
+          <Plus className="h-4 w-4" /> Novo Cliente
         </motion.button>
       </header>
 
       <motion.div
         initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-        whileHover={{ y: -2 }}
         className="bg-fiado text-fiado-foreground rounded-2xl p-5 shadow-xl"
       >
         <div className="text-xs font-bold uppercase opacity-80">Saldo total em aberto</div>
         <div className="text-4xl font-extrabold mt-1">{brl(totalGeral)}</div>
         <div className="text-sm mt-1 opacity-80">
-          {grouped.filter((g) => g.emAberto > 0).length} devedor(es) · {grouped.length} cliente(s) total
+          {grouped.filter((g) => g.emAberto > 0).length} devedor(es) · {grouped.length} cliente(s) cadastrados
         </div>
       </motion.div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {grouped.length === 0 ? (
           <div className="glass-strong rounded-3xl p-12 text-center text-white/50">
-            Nenhum fiado registrado ainda 🎉
+            Nenhum cliente cadastrado ainda 🎉
           </div>
         ) : grouped.map((g, i) => (
           <motion.div
             key={g.cli.id}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-            className="glass-strong rounded-2xl overflow-hidden"
+            className="glass-strong rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center gap-4 hover:bg-white/5 transition-colors"
           >
-            <button
-              onClick={() => setExpanded(expanded === g.cli.id ? null : g.cli.id)}
-              className="w-full p-4 flex items-center gap-3 hover:bg-white/5 transition-colors"
-            >
+            <div className="flex items-center gap-3 w-full md:w-auto flex-1">
               <div className="h-11 w-11 rounded-xl gradient-primary glow flex items-center justify-center font-bold text-lg">
                 {g.cli.nome[0].toUpperCase()}
               </div>
-              <div className="flex-1 text-left min-w-0">
-                <div className="font-bold truncate">{g.cli.nome}</div>
-                <div className="text-xs text-white/50">
-                  {g.itens.length} compra(s) · {g.pagos.length} pagamento(s)
-                </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold truncate text-lg">{g.cli.nome}</div>
+                {g.cli.telefone && <div className="text-xs text-white/50">{g.cli.telefone}</div>}
               </div>
-              <div className="text-right">
-                <div className={`font-extrabold ${g.emAberto > 0 ? "text-fiado" : "text-emerald-brand"}`}>
+            </div>
+
+            <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-glass-border pt-4 md:pt-0">
+              <div className="text-left md:text-right">
+                <div className="text-[10px] text-white/40 uppercase font-bold mb-1">Situação</div>
+                <div className={`font-extrabold text-lg leading-none ${g.emAberto > 0 ? "text-fiado" : "text-emerald-brand"}`}>
                   {g.emAberto > 0 ? brl(g.emAberto) : "Quitado"}
                 </div>
-                <div className="text-[10px] text-white/40 uppercase">
-                  {g.emAberto > 0 ? "em aberto" : "em dia"}
-                </div>
               </div>
-              <motion.div animate={{ rotate: expanded === g.cli.id ? 180 : 0 }}>
-                <ChevronDown className="h-5 w-5 text-white/40" />
-              </motion.div>
-            </button>
-            <AnimatePresence>
-              {expanded === g.cli.id && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden"
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setReportOpen(g.cli.id)}
+                  className="px-4 py-2 rounded-xl glass hover:bg-white/10 text-sm font-semibold flex items-center gap-2 transition"
                 >
-                  <div className="p-4 pt-0 space-y-3 border-t border-glass-border">
-                    <div className="grid grid-cols-3 gap-2 pt-3">
-                      <div className="glass rounded-xl p-2 text-center">
-                        <div className="text-[10px] uppercase text-white/50">Comprou</div>
-                        <div className="font-bold text-sm">{brl(g.totalComprado)}</div>
-                      </div>
-                      <div className="glass rounded-xl p-2 text-center">
-                        <div className="text-[10px] uppercase text-white/50">Pagou</div>
-                        <div className="font-bold text-sm text-emerald-brand">{brl(g.totalPago)}</div>
-                      </div>
-                      <div className="glass rounded-xl p-2 text-center">
-                        <div className="text-[10px] uppercase text-white/50">Deve</div>
-                        <div className="font-bold text-sm text-fiado">{brl(g.emAberto)}</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5 max-h-72 overflow-auto pr-1">
-                      <div className="text-[10px] uppercase font-bold text-white/40 pt-2">Histórico</div>
-                      {eventos(g).map((ev, idx) => (
-                        <motion.div
-                          key={ev.id}
-                          initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.02 }}
-                          className="glass rounded-xl p-3 flex items-center gap-3"
-                        >
-                          <div className={`h-9 w-9 rounded-lg flex items-center justify-center ${
-                            ev.tipo === "pagamento" ? "bg-profit/20 text-emerald-brand" : "bg-fiado/20 text-fiado"
-                          }`}>
-                            {ev.tipo === "pagamento" ? <Wallet className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold truncate">{ev.descricao}</div>
-                            <div className="text-[10px] text-white/50">{dateBR(ev.created_at)}</div>
-                          </div>
-                          <div className={`font-bold text-sm ${ev.tipo === "pagamento" ? "text-emerald-brand" : "text-fiado"}`}>
-                            {ev.tipo === "pagamento" ? "−" : "+"}{brl(ev.valor)}
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-
-                    {g.emAberto > 0 && (
-                      <motion.button
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setPayOpen({ cli: g.cli, total: g.emAberto }); setPayAmount(g.emAberto.toFixed(2)); }}
-                        className="w-full py-3 rounded-xl gradient-emerald text-white font-bold flex items-center justify-center gap-2 hover:brightness-110 transition"
-                      >
-                        <CheckCircle2 className="h-4 w-4" /> Dar Baixa
-                      </motion.button>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  <FileText className="h-4 w-4" /> Relatório
+                </button>
+                <button
+                  onClick={() => excluirCliente(g.cli.id, g.cli.nome)}
+                  className="p-2 rounded-xl text-white/40 hover:text-destructive hover:bg-destructive/10 transition"
+                  title="Excluir cliente"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>
 
       <AnimatePresence>
+        {reportOpen && (
+          <Modal onClose={() => setReportOpen(null)}>
+            {(() => {
+              const g = grouped.find((x) => x.cli.id === reportOpen);
+              if (!g) return null;
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-2xl font-bold">{g.cli.nome}</h3>
+                    <p className="text-white/50 text-sm">Relatório Completo</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="glass rounded-xl p-3 text-center">
+                      <div className="text-[10px] uppercase text-white/50 font-bold">Comprou</div>
+                      <div className="font-bold text-base mt-1">{brl(g.totalComprado)}</div>
+                    </div>
+                    <div className="glass rounded-xl p-3 text-center">
+                      <div className="text-[10px] uppercase text-white/50 font-bold">Pagou</div>
+                      <div className="font-bold text-base mt-1 text-emerald-brand">{brl(g.totalPago)}</div>
+                    </div>
+                    <div className="glass rounded-xl p-3 text-center">
+                      <div className="text-[10px] uppercase text-white/50 font-bold">Deve</div>
+                      <div className="font-bold text-base mt-1 text-fiado">{brl(g.emAberto)}</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 max-h-80 overflow-auto pr-1">
+                    <div className="text-[10px] uppercase font-bold text-white/40 pt-2 sticky top-0 bg-[#0d0912]/90 backdrop-blur pb-1 z-10">Histórico de Eventos</div>
+                    {eventos(g).length === 0 ? (
+                      <p className="text-xs text-white/40 text-center py-4">Nenhum evento registrado.</p>
+                    ) : eventos(g).map((ev, idx) => (
+                      <div key={ev.id} className="glass rounded-xl p-3 flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                          ev.tipo === "pagamento" ? "bg-profit/20 text-emerald-brand" : "bg-fiado/20 text-fiado"
+                        }`}>
+                          {ev.tipo === "pagamento" ? <Wallet className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-semibold truncate">{ev.descricao}</div>
+                          <div className="text-xs text-white/50">{dateBR(ev.created_at)}</div>
+                        </div>
+                        <div className={`font-bold text-base ${ev.tipo === "pagamento" ? "text-emerald-brand" : "text-fiado"}`}>
+                          {ev.tipo === "pagamento" ? "−" : "+"}{brl(ev.valor)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {g.emAberto > 0 && (
+                    <motion.button
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => { setPayOpen({ cli: g.cli, total: g.emAberto }); setPayAmount(g.emAberto.toFixed(2)); }}
+                      className="w-full py-4 mt-2 rounded-xl gradient-emerald text-white font-bold flex items-center justify-center gap-2 hover:brightness-110 transition glow"
+                    >
+                      <CheckCircle2 className="h-5 w-5" /> Dar Baixa (Pagar)
+                    </motion.button>
+                  )}
+                </div>
+              );
+            })()}
+          </Modal>
+        )}
+
         {payOpen && (
           <Modal onClose={() => setPayOpen(null)}>
             <h3 className="text-xl font-bold">Receber pagamento</h3>
@@ -261,18 +286,16 @@ function Fiados() {
               <button onClick={() => setPayAmount(payOpen.total.toFixed(2))} className="py-2 rounded-xl glass text-sm">Total</button>
             </div>
             <div className="flex gap-2">
-              <button onClick={pagar} className="flex-1 py-3 rounded-xl gradient-emerald font-bold">Confirmar</button>
+              <button onClick={pagar} className="flex-1 py-3 rounded-xl gradient-emerald font-bold text-white">Confirmar Pagamento</button>
               <button onClick={() => setPayOpen(null)} className="px-4 py-3 rounded-xl glass">Cancelar</button>
             </div>
           </Modal>
         )}
 
-        {newOpen && (
-          <NewFiadoModal
-            clientes={clientes}
-            onClose={() => setNewOpen(false)}
-            onSaved={() => { setNewOpen(false); load(); window.dispatchEvent(new CustomEvent("data:changed")); }}
-            onClienteCreated={(c) => setClientes((cs) => [...cs, c])}
+        {newClientOpen && (
+          <NewClientModal
+            onClose={() => setNewClientOpen(false)}
+            onSaved={() => { setNewClientOpen(false); load(); }}
           />
         )}
       </AnimatePresence>
@@ -284,7 +307,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -295,78 +318,53 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-4 relative"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white"><X className="h-4 w-4" /></button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white"><X className="h-5 w-5" /></button>
         {children}
       </motion.div>
     </motion.div>
   );
 }
 
-function NewFiadoModal({ clientes, onClose, onSaved, onClienteCreated }: { clientes: Cliente[]; onClose: () => void; onSaved: () => void; onClienteCreated: (c: Cliente) => void }) {
-  const [cliId, setCliId] = useState("");
-  const [desc, setDesc] = useState("");
-  const [valor, setValor] = useState("");
-  const [novo, setNovo] = useState(false);
+function NewClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const [novoNome, setNovoNome] = useState("");
   const [novoTel, setNovoTel] = useState("");
-
-  const criarCliente = async () => {
-    if (!novoNome.trim()) return toast.error("Nome obrigatório");
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data, error } = await supabase.from("clientes").insert({ user_id: user!.id, nome: novoNome.trim(), telefone: novoTel || null }).select().single();
-    if (error) return toast.error(error.message);
-    onClienteCreated(data); setCliId(data.id); setNovo(false);
-  };
+  const [saving, setSaving] = useState(false);
 
   const salvar = async () => {
-    const n = parseFloat(valor.replace(",", "."));
-    if (!cliId || !desc.trim() || !n) return toast.error("Preencha tudo");
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user!.id;
-    const { data: venda, error: e1 } = await supabase.from("vendas").insert({
-      user_id: userId, produto: desc.trim(), valor: n, tipo_pagamento: "fiado", cliente_id: cliId, is_fiado: true,
-    }).select().single();
-    if (e1) return toast.error(e1.message);
-    const { error: e2 } = await supabase.from("fiados_registros").insert({
-      user_id: userId, cliente_id: cliId, venda_id: venda.id, descricao: desc.trim(), valor_total: n,
-    });
-    if (e2) return toast.error(e2.message);
-    toast.success("Fiado registrado");
-    onSaved();
+    if (!novoNome.trim()) return toast.error("Nome obrigatório");
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("clientes").insert({ user_id: user!.id, nome: novoNome.trim(), telefone: novoTel || null });
+      if (error) throw error;
+      toast.success("Cliente cadastrado");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Modal onClose={onClose}>
-      <h3 className="text-xl font-bold">Novo Fiado</h3>
-
-      {novo ? (
-        <div className="space-y-2">
-          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome do cliente" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
-          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
-          <div className="flex gap-2">
-            <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary font-semibold text-sm">Cadastrar</button>
-            <button onClick={() => setNovo(false)} className="px-3 py-2 rounded-lg glass text-sm">Cancelar</button>
-          </div>
+      <h3 className="text-xl font-bold">Novo Cliente</h3>
+      <div className="space-y-3 pt-2">
+        <div>
+          <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Nome Completo</label>
+          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex: João da Silva" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
-      ) : (
-        <div className="space-y-2">
-          <select value={cliId} onChange={(e) => setCliId(e.target.value)} className="w-full px-3 py-3 rounded-xl bg-input text-sm">
-            <option value="">Selecione um cliente</option>
-            {clientes.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-          </select>
-          <button onClick={() => setNovo(true)} className="w-full py-2 rounded-xl glass text-sm text-white/70 hover:text-white flex items-center justify-center gap-1">
-            <Plus className="h-3 w-3" /> Novo cliente
-          </button>
+        <div>
+          <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Telefone (Opcional)</label>
+          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="(00) 00000-0000" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
-      )}
-
-      <input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição (ex: 2x Açaí 500ml)" className="w-full px-4 py-3 rounded-xl bg-input text-sm" />
-      <input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="Valor (R$)" type="text" inputMode="decimal" className="w-full px-4 py-3 rounded-xl bg-input text-sm" />
-
-      <div className="flex gap-2">
-        <button onClick={salvar} className="flex-1 py-3 rounded-xl gradient-primary font-semibold">Registrar</button>
-        <button onClick={onClose} className="px-4 py-3 rounded-xl glass">Cancelar</button>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <button onClick={salvar} disabled={saving} className="flex-1 py-3 rounded-xl gradient-primary font-bold text-white glow">
+          {saving ? "Salvando..." : "Cadastrar Cliente"}
+        </button>
       </div>
     </Modal>
   );
 }
+

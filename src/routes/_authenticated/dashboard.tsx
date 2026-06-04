@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
-import { TrendingUp, TrendingDown, Wallet, ReceiptText } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, ReceiptText, CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, dayKey, dayLabel } from "@/lib/format";
 
@@ -17,19 +17,29 @@ function Dashboard() {
   const [stats, setStats] = useState<Stats>({ vendas: 0, despesas: 0, lucro: 0, fiados: 0, chart: [] });
   const [loading, setLoading] = useState(true);
 
+  // Data default: últimos 7 dias até hoje
+  const dataPadraoFim = new Date();
+  const dataPadraoInicio = new Date();
+  dataPadraoInicio.setDate(dataPadraoInicio.getDate() - 6);
+
+  const [dateFrom, setDateFrom] = useState(dataPadraoInicio.toISOString().slice(0, 10));
+  const [dateTo, setDateTo] = useState(dataPadraoFim.toISOString().slice(0, 10));
+
   useEffect(() => {
     load();
-  }, []);
+  }, [dateFrom, dateTo]);
 
   async function load() {
     setLoading(true);
-    const since = new Date(); since.setDate(since.getDate() - 6); since.setHours(0, 0, 0, 0);
+
+    const fromDate = new Date(dateFrom + "T00:00:00");
+    const toDate = new Date(dateTo + "T23:59:59"); // Fim do dia
 
     const [vendasRes, despesasRes, fiadosRes, pagamentosRes] = await Promise.all([
-      supabase.from("vendas").select("valor,is_fiado,created_at").gte("created_at", since.toISOString()),
-      supabase.from("despesas").select("valor,created_at").gte("created_at", since.toISOString()),
+      supabase.from("vendas").select("valor,is_fiado,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
+      supabase.from("despesas").select("valor,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("fiados_registros").select("valor_total,valor_pago,status"),
-      supabase.from("fiados_pagamentos").select("valor,created_at").gte("created_at", since.toISOString()),
+      supabase.from("fiados_pagamentos").select("valor,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
     ]);
 
     const vendas = vendasRes.data ?? [];
@@ -37,24 +47,34 @@ function Dashboard() {
     const fiados = fiadosRes.data ?? [];
     const pagamentos = pagamentosRes.data ?? [];
 
-    // Faturamento = vendas não-fiado + pagamentos recebidos de fiados
     const faturamentoTotal =
       vendas.filter((v) => !v.is_fiado).reduce((s, v) => s + Number(v.valor), 0) +
       pagamentos.reduce((s, p) => s + Number(p.valor), 0);
 
     const despesasTotal = despesas.reduce((s, d) => s + Number(d.valor), 0);
 
-    // Saldo em aberto de fiados
+    // Saldo em aberto geral independe da data para mostrar total de devedores, 
+    // mas se o usuário quiser ver só a divida gerada no período, podemos filtrar. 
+    // Como fiado em aberto geralmente significa o risco total do negócio, manteremos global.
     const fiadosAberto = fiados
       .filter((f) => f.status === "aberto")
       .reduce((s, f) => s + (Number(f.valor_total) - Number(f.valor_pago)), 0);
 
-    // Chart: últimos 7 dias
+    // Chart: Dias baseados no intervalo selecionado
     const days: { day: string; key: string; valor: number }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i); d.setHours(0, 0, 0, 0);
+    const diffTime = Math.abs(toDate.getTime() - fromDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Limite de 30 pontos no gráfico para não bugar a UI
+    const totalDays = Math.min(diffDays, 30);
+    
+    for (let i = totalDays - 1; i >= 0; i--) {
+      const d = new Date(toDate); 
+      d.setDate(d.getDate() - i); 
+      d.setHours(0, 0, 0, 0);
       days.push({ day: dayLabel(d), key: dayKey(d), valor: 0 });
     }
+    
     vendas.filter((v) => !v.is_fiado).forEach((v) => {
       const k = dayKey(new Date(v.created_at));
       const slot = days.find((d) => d.key === k);
@@ -78,18 +98,37 @@ function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <header>
-        <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-extrabold">
-          Olá, <span className="text-gradient">Cantinho</span> 👋
-        </motion.h1>
-        <p className="text-white/60 mt-1">Resumo dos últimos 7 dias</p>
+      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-extrabold">
+            Olá, <span className="text-gradient">Cantinho</span> 👋
+          </motion.h1>
+          <p className="text-white/60 mt-1">Resumo do período selecionado</p>
+        </div>
+
+        <div className="flex items-center gap-2 glass-strong p-2 rounded-xl">
+          <CalendarIcon className="h-5 w-5 text-white/50 ml-2" />
+          <input 
+            type="date" 
+            value={dateFrom} 
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="bg-transparent border-none text-sm text-white focus:ring-0 w-[120px]"
+          />
+          <span className="text-white/30">até</span>
+          <input 
+            type="date" 
+            value={dateTo} 
+            onChange={(e) => setDateTo(e.target.value)}
+            className="bg-transparent border-none text-sm text-white focus:ring-0 w-[120px]"
+          />
+        </div>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-sales" fg="text-sales-foreground" loading={loading} />
         <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-expense" fg="text-expense-foreground" loading={loading} />
         <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-profit" fg="text-profit-foreground" loading={loading} />
-        <KpiCard idx={3} label="Fiados" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-fiado" fg="text-fiado-foreground" loading={loading} />
+        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-fiado" fg="text-fiado-foreground" loading={loading} />
       </div>
 
       <motion.div
@@ -99,7 +138,7 @@ function Dashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-xl font-bold">Faturamento</h2>
-            <p className="text-sm text-white/60">Últimos 7 dias</p>
+            <p className="text-sm text-white/60">Período selecionado</p>
           </div>
         </div>
         <div className="h-72">
@@ -151,3 +190,4 @@ function KpiCard({ idx, label, value, icon, bg, fg, loading }: {
     </motion.div>
   );
 }
+
