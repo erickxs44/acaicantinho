@@ -125,10 +125,10 @@ function Dashboard() {
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-sales" fg="text-sales-foreground" loading={loading} />
-        <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-expense" fg="text-expense-foreground" loading={loading} />
-        <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-profit" fg="text-profit-foreground" loading={loading} />
-        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-fiado" fg="text-fiado-foreground" loading={loading} />
+        <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-sales" fg="text-sales-foreground" border="border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]" loading={loading} />
+        <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-expense" fg="text-expense-foreground" border="border-destructive/40 shadow-[0_0_15px_rgba(255,0,0,0.05)]" loading={loading} />
+        <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-profit" fg="text-profit-foreground" border="border-success/40 shadow-[0_0_15px_rgba(0,255,100,0.05)]" loading={loading} />
+        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-fiado" fg="text-fiado-foreground" border="border-warning/40 shadow-[0_0_15px_rgba(255,200,0,0.05)]" loading={loading} />
       </div>
 
       <motion.div
@@ -146,19 +146,19 @@ function Dashboard() {
             <AreaChart data={stats.chart} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
               <defs>
                 <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.70 0.32 310)" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="oklch(0.55 0.27 305)" stopOpacity={0} />
+                  <stop offset="0%" stopColor="oklch(0.75 0.15 220)" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="oklch(0.55 0.12 220)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.08)" />
               <XAxis dataKey="day" stroke="oklch(1 0 0 / 0.5)" fontSize={12} />
               <YAxis stroke="oklch(1 0 0 / 0.5)" fontSize={12} tickFormatter={(v) => `R$${v}`} />
               <Tooltip
-                contentStyle={{ background: "oklch(0.22 0.07 305 / 0.95)", border: "1px solid oklch(1 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
+                contentStyle={{ background: "oklch(0.22 0.04 270 / 0.95)", border: "1px solid oklch(1 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
                 labelStyle={{ color: "white", fontWeight: 600 }}
                 formatter={(v: number) => [brl(v), "Faturamento"]}
               />
-              <Area type="monotone" dataKey="valor" stroke="oklch(0.75 0.30 310)" strokeWidth={3} fill="url(#g1)" animationDuration={1200} />
+              <Area type="monotone" dataKey="valor" stroke="oklch(0.75 0.15 220)" strokeWidth={3} fill="url(#g1)" animationDuration={1200} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -167,8 +167,8 @@ function Dashboard() {
   );
 }
 
-function KpiCard({ idx, label, value, icon, bg, fg, loading }: {
-  idx: number; label: string; value: string; icon: React.ReactNode; bg: string; fg: string; loading: boolean;
+function KpiCard({ idx, label, value, icon, bg, fg, border, loading }: {
+  idx: number; label: string; value: string; icon: React.ReactNode; bg: string; fg: string; border: string; loading: boolean;
 }) {
   return (
     <motion.div
@@ -176,7 +176,7 @@ function KpiCard({ idx, label, value, icon, bg, fg, loading }: {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.08, type: "spring", stiffness: 120 }}
       whileHover={{ y: -4, scale: 1.02 }}
-      className={`${bg} ${fg} rounded-2xl p-5 shadow-xl relative overflow-hidden`}
+      className={`${bg} ${fg} ${border} border rounded-2xl p-5 shadow-xl relative overflow-hidden`}
     >
       <div className="absolute -right-4 -top-4 opacity-15 [&>svg]:h-24 [&>svg]:w-24">{icon}</div>
       <div className="relative">
