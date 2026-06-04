@@ -146,19 +146,19 @@ function Dashboard() {
             <AreaChart data={stats.chart} margin={{ top: 10, right: 10, bottom: 0, left: -10 }}>
               <defs>
                 <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="oklch(0.75 0.15 220)" stopOpacity={0.6} />
-                  <stop offset="100%" stopColor="oklch(0.55 0.12 220)" stopOpacity={0} />
+                  <stop offset="0%" stopColor="oklch(0.75 0.18 300)" stopOpacity={0.6} />
+                  <stop offset="100%" stopColor="oklch(0.55 0.28 300)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.08)" />
               <XAxis dataKey="day" stroke="oklch(1 0 0 / 0.5)" fontSize={12} />
               <YAxis stroke="oklch(1 0 0 / 0.5)" fontSize={12} tickFormatter={(v) => `R$${v}`} />
               <Tooltip
-                contentStyle={{ background: "oklch(0.22 0.04 270 / 0.95)", border: "1px solid oklch(1 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
+                contentStyle={{ background: "oklch(0.20 0.06 300 / 0.95)", border: "1px solid oklch(1 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
                 labelStyle={{ color: "white", fontWeight: 600 }}
                 formatter={(v: number) => [brl(v), "Faturamento"]}
               />
-              <Area type="monotone" dataKey="valor" stroke="oklch(0.75 0.15 220)" strokeWidth={3} fill="url(#g1)" animationDuration={1200} />
+              <Area type="monotone" dataKey="valor" stroke="oklch(0.75 0.18 300)" strokeWidth={3} fill="url(#g1)" animationDuration={1200} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
