@@ -103,32 +103,32 @@ function Dashboard() {
           <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-extrabold">
             Olá, <span className="text-gradient">Cantinho</span> 👋
           </motion.h1>
-          <p className="text-white/60 mt-1">Resumo do período selecionado</p>
+          <p className="text-foreground/60 mt-1">Resumo do período selecionado</p>
         </div>
 
         <div className="flex items-center gap-2 glass-strong p-2 rounded-xl">
-          <CalendarIcon className="h-5 w-5 text-white/50 ml-2" />
+          <CalendarIcon className="h-5 w-5 text-foreground/50 ml-2" />
           <input 
             type="date" 
             value={dateFrom} 
             onChange={(e) => setDateFrom(e.target.value)}
-            className="bg-transparent border-none text-sm text-white focus:ring-0 w-[120px]"
+            className="bg-transparent border-none text-sm text-foreground focus:ring-0 w-[120px]"
           />
-          <span className="text-white/30">até</span>
+          <span className="text-foreground/40">até</span>
           <input 
             type="date" 
             value={dateTo} 
             onChange={(e) => setDateTo(e.target.value)}
-            className="bg-transparent border-none text-sm text-white focus:ring-0 w-[120px]"
+            className="bg-transparent border-none text-sm text-foreground focus:ring-0 w-[120px]"
           />
         </div>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-sales" fg="text-sales-foreground" border="border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)]" loading={loading} />
-        <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-expense" fg="text-expense-foreground" border="border-destructive/40 shadow-[0_0_15px_rgba(255,0,0,0.05)]" loading={loading} />
-        <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-profit" fg="text-profit-foreground" border="border-success/40 shadow-[0_0_15px_rgba(0,255,100,0.05)]" loading={loading} />
-        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-fiado" fg="text-fiado-foreground" border="border-warning/40 shadow-[0_0_15px_rgba(255,200,0,0.05)]" loading={loading} />
+        <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-card" fg="text-sales-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
+        <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-card" fg="text-expense-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
+        <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-card" fg="text-profit-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
+        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-card" fg="text-fiado-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
       </div>
 
       <motion.div
@@ -137,8 +137,8 @@ function Dashboard() {
       >
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold">Faturamento</h2>
-            <p className="text-sm text-white/60">Período selecionado</p>
+            <h2 className="text-xl font-bold text-foreground">Faturamento</h2>
+            <p className="text-sm text-foreground/60">Período selecionado</p>
           </div>
         </div>
         <div className="h-72">
@@ -150,12 +150,12 @@ function Dashboard() {
                   <stop offset="100%" stopColor="oklch(0.55 0.28 300)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="oklch(1 0 0 / 0.08)" />
-              <XAxis dataKey="day" stroke="oklch(1 0 0 / 0.5)" fontSize={12} />
-              <YAxis stroke="oklch(1 0 0 / 0.5)" fontSize={12} tickFormatter={(v) => `R$${v}`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="oklch(0 0 0 / 0.08)" />
+              <XAxis dataKey="day" stroke="oklch(0 0 0 / 0.5)" fontSize={12} />
+              <YAxis stroke="oklch(0 0 0 / 0.5)" fontSize={12} tickFormatter={(v) => `R$${v}`} />
               <Tooltip
-                contentStyle={{ background: "oklch(0.20 0.06 300 / 0.95)", border: "1px solid oklch(1 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
-                labelStyle={{ color: "white", fontWeight: 600 }}
+                contentStyle={{ background: "oklch(1 0 0 / 0.95)", border: "1px solid oklch(0 0 0 / 0.15)", borderRadius: 12, backdropFilter: "blur(20px)" }}
+                labelStyle={{ color: "var(--color-foreground)", fontWeight: 600 }}
                 formatter={(v: number) => [brl(v), "Faturamento"]}
               />
               <Area type="monotone" dataKey="valor" stroke="oklch(0.75 0.18 300)" strokeWidth={3} fill="url(#g1)" animationDuration={1200} />

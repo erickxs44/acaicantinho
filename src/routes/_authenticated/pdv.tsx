@@ -100,8 +100,8 @@ function PDV() {
     <div className="space-y-6 max-w-4xl mx-auto">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold mb-1">PDV Simplificado</h1>
-          <p className="text-white/60">Registros rápidos de vendas</p>
+          <h1 className="text-3xl font-extrabold mb-1 text-foreground">PDV Simplificado</h1>
+          <p className="text-foreground/60">Registros rápidos de vendas</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
@@ -113,19 +113,19 @@ function PDV() {
       </header>
 
       <div className="glass-strong rounded-3xl p-6 min-h-[400px]">
-        <h2 className="text-xl font-bold mb-4">Vendas Recentes</h2>
+        <h2 className="text-xl font-bold mb-4 text-foreground">Vendas Recentes</h2>
         <div className="space-y-3">
           {recentSales.length === 0 ? (
-            <p className="text-center text-white/40 py-12">Nenhuma venda recente.</p>
+            <p className="text-center text-foreground/40 py-12">Nenhuma venda recente.</p>
           ) : (
             recentSales.map((v) => (
               <motion.div key={v.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-profit/20 text-emerald-brand flex items-center justify-center">
+                <div className="h-10 w-10 rounded-xl bg-emerald-brand/10 text-emerald-brand flex items-center justify-center">
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate">{v.produto}</div>
-                  <div className="text-xs text-white/50">{dateBR(v.created_at)} • {v.tipo_pagamento}</div>
+                  <div className="font-bold truncate text-foreground">{v.produto}</div>
+                  <div className="text-xs text-foreground/50">{dateBR(v.created_at)} • {v.tipo_pagamento}</div>
                 </div>
                 <div className="font-extrabold text-emerald-brand text-lg">{brl(v.valor)}</div>
               </motion.div>
@@ -149,23 +149,23 @@ function PDV() {
               onClick={(e) => e.stopPropagation()}
               className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative"
             >
-              <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white"><X className="h-5 w-5" /></button>
+              <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
               
-              <h2 className="text-2xl font-bold">Nova Venda</h2>
+              <h2 className="text-2xl font-bold text-foreground">Nova Venda</h2>
               
               <div className="space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Pedido / Produto</label>
-                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none" />
+                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Pedido / Produto</label>
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none text-foreground" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Valor</label>
-                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none font-bold text-lg" />
+                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor</label>
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none font-bold text-lg text-foreground" />
                 </div>
               </div>
 
               <div className="border-t border-glass-border pt-4">
-                <div className="text-xs font-semibold text-white/60 uppercase tracking-wider mb-2">Pagamento</div>
+                <div className="text-xs font-semibold text-foreground/60 uppercase tracking-wider mb-2">Pagamento</div>
                 <div className="grid grid-cols-4 gap-2">
                   {([
                     { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
@@ -177,7 +177,7 @@ function PDV() {
                       key={o.v}
                       onClick={() => setPgto(o.v)}
                       className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-semibold transition ${
-                        pgto === o.v ? "gradient-primary text-white glow" : "glass text-white/70 hover:text-white"
+                        pgto === o.v ? "gradient-primary text-white glow" : "glass text-foreground/70 hover:text-foreground"
                       }`}
                     >
                       {o.i} {o.l}
@@ -191,43 +191,43 @@ function PDV() {
                   {clienteSel ? (
                     <div className="glass rounded-xl p-3 flex items-center justify-between">
                       <div>
-                        <div className="text-xs text-white/50">Cliente</div>
-                        <div className="font-semibold">{clienteSel.nome}</div>
+                        <div className="text-xs text-foreground/50">Cliente</div>
+                        <div className="font-semibold text-foreground">{clienteSel.nome}</div>
                       </div>
-                      <button onClick={() => setClienteSel(null)}><X className="h-4 w-4 text-white/60" /></button>
+                      <button onClick={() => setClienteSel(null)}><X className="h-4 w-4 text-foreground/60" /></button>
                     </div>
                   ) : (
                     <>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
                         <input
                           value={busca}
                           onChange={(e) => setBusca(e.target.value)}
                           placeholder="Buscar cliente..."
-                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                       </div>
                       <div className="max-h-32 overflow-auto space-y-1">
                         {filtered.length === 0 ? (
-                          <p className="text-xs text-white/40 text-center py-4">Nenhum cliente</p>
+                          <p className="text-xs text-foreground/40 text-center py-4">Nenhum cliente</p>
                         ) : filtered.map((c) => (
-                          <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-white/10 transition">
-                            <div className="text-sm font-semibold">{c.nome}</div>
-                            {c.telefone && <div className="text-xs text-white/50">{c.telefone}</div>}
+                          <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-black/5 transition">
+                            <div className="text-sm font-semibold text-foreground">{c.nome}</div>
+                            {c.telefone && <div className="text-xs text-foreground/50">{c.telefone}</div>}
                           </button>
                         ))}
                       </div>
                       {novoCliente ? (
                         <div className="glass rounded-xl p-3 space-y-2">
-                          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
-                          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm" />
+                          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
+                          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
                           <div className="flex gap-2">
-                            <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-sm font-semibold">Cadastrar</button>
-                            <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-sm">Cancelar</button>
+                            <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-white text-sm font-semibold">Cadastrar</button>
+                            <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-foreground text-sm">Cancelar</button>
                           </div>
                         </div>
                       ) : (
-                        <button onClick={() => setNovoCliente(true)} className="w-full py-3 rounded-xl glass text-sm flex items-center justify-center gap-1 text-white/70 hover:text-white font-semibold">
+                        <button onClick={() => setNovoCliente(true)} className="w-full py-3 rounded-xl glass text-sm flex items-center justify-center gap-1 text-foreground/70 hover:text-foreground font-semibold">
                           <Plus className="h-4 w-4" /> Novo cliente
                         </button>
                       )}

@@ -28,12 +28,12 @@ export function AppShell() {
       <aside className="hidden md:flex w-64 flex-col p-4 gap-2 sticky top-0 h-screen">
         <motion.div
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-          className="glass-strong rounded-2xl p-4 flex items-center gap-3"
+          className="glass-strong rounded-2xl p-4 flex items-center gap-3 border border-primary/20"
         >
           <div className="h-10 w-10 rounded-xl gradient-primary glow flex items-center justify-center text-xl">🍇</div>
           <div>
-            <div className="text-sm font-bold leading-tight">Cantinho</div>
-            <div className="text-xs text-white/60 leading-tight">do Açaí</div>
+            <div className="text-sm font-bold text-foreground leading-tight">Cantinho</div>
+            <div className="text-xs text-foreground/60 leading-tight">do Açaí</div>
           </div>
         </motion.div>
         <nav className="glass-strong rounded-2xl p-2 flex-1 flex flex-col gap-1">
@@ -48,7 +48,7 @@ export function AppShell() {
                 <Link
                   to={to}
                   className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    active ? "text-white" : "text-white/70 hover:text-white hover:bg-white/5"
+                    active ? "text-white" : "text-foreground/70 hover:text-foreground hover:bg-black/5"
                   }`}
                 >
                   {active && (
@@ -67,18 +67,18 @@ export function AppShell() {
         </nav>
         <button
           onClick={logout}
-          className="glass-strong rounded-2xl p-3 flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
+          className="glass-strong rounded-2xl p-3 flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors"
         >
           <LogOut className="h-4 w-4" /> Sair
         </button>
       </aside>
 
-      <div className="md:hidden fixed top-0 left-0 right-0 z-30 glass-strong px-4 py-3 flex items-center justify-between">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-30 glass-strong border-b border-primary/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">🍇</div>
-          <div className="text-sm font-bold">Cantinho do Açaí</div>
+          <div className="text-sm font-bold text-foreground">Cantinho do Açaí</div>
         </div>
-        <button onClick={logout} className="text-white/70"><LogOut className="h-4 w-4" /></button>
+        <button onClick={logout} className="text-foreground/70 hover:text-foreground"><LogOut className="h-4 w-4" /></button>
       </div>
 
       <main className="flex-1 p-4 md:p-8 pt-20 md:pt-8 pb-28 md:pb-8 min-w-0">
@@ -95,7 +95,7 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-strong p-2 grid grid-cols-5 gap-1">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-strong border-t border-primary/10 p-2 grid grid-cols-5 gap-1">
         {nav.map(({ to, icon: Icon, label }) => {
           const active = pathname.startsWith(to);
           return (
@@ -111,8 +111,8 @@ export function AppShell() {
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
-              <Icon className={`relative h-4 w-4 ${active ? "text-white" : "text-white/60"}`} />
-              <span className={`relative ${active ? "text-white" : "text-white/60"}`}>{label}</span>
+              <Icon className={`relative h-4 w-4 ${active ? "text-white" : "text-foreground/60"}`} />
+              <span className={`relative ${active ? "text-white" : "text-foreground/60"}`}>{label}</span>
             </Link>
           );
         })}

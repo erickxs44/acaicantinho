@@ -139,8 +139,8 @@ function Fiados() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold">CRM & Fiados</h1>
-          <p className="text-white/60">Gestão de clientes e saldos</p>
+          <h1 className="text-3xl font-extrabold text-foreground">CRM & Fiados</h1>
+          <p className="text-foreground/60">Gestão de clientes e saldos</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
@@ -164,7 +164,7 @@ function Fiados() {
 
       <div className="space-y-3">
         {grouped.length === 0 ? (
-          <div className="glass-strong rounded-3xl p-12 text-center text-white/50">
+          <div className="glass-strong rounded-3xl p-12 text-center text-foreground/50">
             Nenhum cliente cadastrado ainda 🎉
           </div>
         ) : grouped.map((g, i) => (
@@ -178,15 +178,15 @@ function Fiados() {
                 {g.cli.nome[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-bold truncate text-lg">{g.cli.nome}</div>
-                {g.cli.telefone && <div className="text-xs text-white/50">{g.cli.telefone}</div>}
+                <div className="font-bold truncate text-lg text-foreground">{g.cli.nome}</div>
+                {g.cli.telefone && <div className="text-xs text-foreground/50">{g.cli.telefone}</div>}
               </div>
             </div>
 
             <div className="flex w-full md:w-auto items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-glass-border pt-4 md:pt-0">
               <div className="text-left md:text-right">
-                <div className="text-[10px] text-white/40 uppercase font-bold mb-1">Situação</div>
-                <div className={`font-extrabold text-lg leading-none ${g.emAberto > 0 ? "text-fiado" : "text-emerald-brand"}`}>
+                <div className="text-[10px] text-foreground/40 uppercase font-bold mb-1">Situação</div>
+                <div className={`font-extrabold text-lg leading-none ${g.emAberto > 0 ? "text-fiado-foreground" : "text-emerald-brand"}`}>
                   {g.emAberto > 0 ? brl(g.emAberto) : "Quitado"}
                 </div>
               </div>
@@ -194,13 +194,13 @@ function Fiados() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setReportOpen(g.cli.id)}
-                  className="px-4 py-2 rounded-xl glass hover:bg-white/10 text-sm font-semibold flex items-center gap-2 transition"
+                  className="px-4 py-2 rounded-xl glass hover:bg-black/5 text-foreground text-sm font-semibold flex items-center gap-2 transition"
                 >
                   <FileText className="h-4 w-4" /> Relatório
                 </button>
                 <button
                   onClick={() => excluirCliente(g.cli.id, g.cli.nome)}
-                  className="p-2 rounded-xl text-white/40 hover:text-destructive hover:bg-destructive/10 transition"
+                  className="p-2 rounded-xl text-foreground/40 hover:text-destructive hover:bg-destructive/10 transition"
                   title="Excluir cliente"
                 >
                   <Trash2 className="h-5 w-5" />
@@ -220,41 +220,41 @@ function Fiados() {
               return (
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-2xl font-bold">{g.cli.nome}</h3>
-                    <p className="text-white/50 text-sm">Relatório Completo</p>
+                    <h3 className="text-2xl font-bold text-foreground">{g.cli.nome}</h3>
+                    <p className="text-foreground/50 text-sm">Relatório Completo</p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
                     <div className="glass rounded-xl p-3 text-center">
-                      <div className="text-[10px] uppercase text-white/50 font-bold">Comprou</div>
-                      <div className="font-bold text-base mt-1">{brl(g.totalComprado)}</div>
+                      <div className="text-[10px] uppercase text-foreground/50 font-bold">Comprou</div>
+                      <div className="font-bold text-base mt-1 text-foreground">{brl(g.totalComprado)}</div>
                     </div>
                     <div className="glass rounded-xl p-3 text-center">
-                      <div className="text-[10px] uppercase text-white/50 font-bold">Pagou</div>
+                      <div className="text-[10px] uppercase text-foreground/50 font-bold">Pagou</div>
                       <div className="font-bold text-base mt-1 text-emerald-brand">{brl(g.totalPago)}</div>
                     </div>
                     <div className="glass rounded-xl p-3 text-center">
-                      <div className="text-[10px] uppercase text-white/50 font-bold">Deve</div>
-                      <div className="font-bold text-base mt-1 text-fiado">{brl(g.emAberto)}</div>
+                      <div className="text-[10px] uppercase text-foreground/50 font-bold">Deve</div>
+                      <div className="font-bold text-base mt-1 text-fiado-foreground">{brl(g.emAberto)}</div>
                     </div>
                   </div>
 
                   <div className="space-y-2 max-h-80 overflow-auto pr-1">
-                    <div className="text-[10px] uppercase font-bold text-white/40 pt-2 sticky top-0 bg-[#0d0912]/90 backdrop-blur pb-1 z-10">Histórico de Eventos</div>
+                    <div className="text-[10px] uppercase font-bold text-foreground/40 pt-2 sticky top-0 bg-background/90 backdrop-blur pb-1 z-10">Histórico de Eventos</div>
                     {eventos(g).length === 0 ? (
-                      <p className="text-xs text-white/40 text-center py-4">Nenhum evento registrado.</p>
+                      <p className="text-xs text-foreground/40 text-center py-4">Nenhum evento registrado.</p>
                     ) : eventos(g).map((ev, idx) => (
                       <div key={ev.id} className="glass rounded-xl p-3 flex items-center gap-3">
                         <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
-                          ev.tipo === "pagamento" ? "bg-profit/20 text-emerald-brand" : "bg-fiado/20 text-fiado"
+                          ev.tipo === "pagamento" ? "bg-emerald-brand/10 text-emerald-brand" : "bg-fiado/10 text-fiado-foreground"
                         }`}>
                           {ev.tipo === "pagamento" ? <Wallet className="h-5 w-5" /> : <ShoppingBag className="h-5 w-5" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold truncate">{ev.descricao}</div>
-                          <div className="text-xs text-white/50">{dateBR(ev.created_at)}</div>
+                          <div className="text-sm font-semibold truncate text-foreground">{ev.descricao}</div>
+                          <div className="text-xs text-foreground/50">{dateBR(ev.created_at)}</div>
                         </div>
-                        <div className={`font-bold text-base ${ev.tipo === "pagamento" ? "text-emerald-brand" : "text-fiado"}`}>
+                        <div className={`font-bold text-base ${ev.tipo === "pagamento" ? "text-emerald-brand" : "text-fiado-foreground"}`}>
                           {ev.tipo === "pagamento" ? "−" : "+"}{brl(ev.valor)}
                         </div>
                       </div>
@@ -278,16 +278,16 @@ function Fiados() {
 
         {payOpen && (
           <Modal onClose={() => setPayOpen(null)}>
-            <h3 className="text-xl font-bold">Receber pagamento</h3>
-            <p className="text-sm text-white/60">{payOpen.cli.nome} — saldo {brl(payOpen.total)}</p>
-            <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="text" inputMode="decimal" placeholder="Valor" className="w-full px-4 py-3 rounded-xl bg-input text-lg font-bold" />
+            <h3 className="text-xl font-bold text-foreground">Receber pagamento</h3>
+            <p className="text-sm text-foreground/60">{payOpen.cli.nome} — saldo {brl(payOpen.total)}</p>
+            <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="text" inputMode="decimal" placeholder="Valor" className="w-full px-4 py-3 rounded-xl bg-input text-lg font-bold text-foreground" />
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={() => setPayAmount((payOpen.total / 2).toFixed(2))} className="py-2 rounded-xl glass text-sm">Metade</button>
-              <button onClick={() => setPayAmount(payOpen.total.toFixed(2))} className="py-2 rounded-xl glass text-sm">Total</button>
+              <button onClick={() => setPayAmount((payOpen.total / 2).toFixed(2))} className="py-2 rounded-xl glass text-foreground text-sm">Metade</button>
+              <button onClick={() => setPayAmount(payOpen.total.toFixed(2))} className="py-2 rounded-xl glass text-foreground text-sm">Total</button>
             </div>
             <div className="flex gap-2">
-              <button onClick={pagar} className="flex-1 py-3 rounded-xl gradient-emerald font-bold text-white">Confirmar Pagamento</button>
-              <button onClick={() => setPayOpen(null)} className="px-4 py-3 rounded-xl glass">Cancelar</button>
+              <button onClick={pagar} className="flex-1 py-3 rounded-xl gradient-emerald font-bold text-white glow">Confirmar Pagamento</button>
+              <button onClick={() => setPayOpen(null)} className="px-4 py-3 rounded-xl glass text-foreground font-medium">Cancelar</button>
             </div>
           </Modal>
         )}
@@ -318,7 +318,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
         onClick={(e) => e.stopPropagation()}
         className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-4 relative"
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-white/50 hover:text-white"><X className="h-5 w-5" /></button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
         {children}
       </motion.div>
     </motion.div>
@@ -348,15 +348,15 @@ function NewClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
 
   return (
     <Modal onClose={onClose}>
-      <h3 className="text-xl font-bold">Novo Cliente</h3>
+      <h3 className="text-xl font-bold text-foreground">Novo Cliente</h3>
       <div className="space-y-3 pt-2">
         <div>
-          <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Nome Completo</label>
-          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex: João da Silva" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm focus:ring-2 focus:ring-ring focus:outline-none" />
+          <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Nome Completo</label>
+          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex: João da Silva" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
         <div>
-          <label className="text-xs font-semibold text-white/60 ml-1 uppercase">Telefone (Opcional)</label>
-          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="(00) 00000-0000" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm focus:ring-2 focus:ring-ring focus:outline-none" />
+          <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Telefone (Opcional)</label>
+          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="(00) 00000-0000" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
       </div>
       <div className="flex gap-2 pt-2">

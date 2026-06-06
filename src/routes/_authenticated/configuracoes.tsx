@@ -61,8 +61,8 @@ function Configuracoes() {
       className="space-y-6 max-w-2xl mx-auto"
     >
       <header>
-        <h1 className="text-3xl font-extrabold">Configurações</h1>
-        <p className="text-white/60">Perfil e administração do sistema</p>
+        <h1 className="text-3xl font-extrabold text-foreground">Configurações</h1>
+        <p className="text-foreground/60">Perfil e administração do sistema</p>
       </header>
 
       <motion.section
@@ -74,17 +74,17 @@ function Configuracoes() {
             <User className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">Perfil</h2>
-            <p className="text-xs text-white/50">Conta autenticada</p>
+            <h2 className="text-lg font-bold text-foreground">Perfil</h2>
+            <p className="text-xs text-foreground/50">Conta autenticada</p>
           </div>
         </div>
         <div className="glass rounded-xl p-3">
-          <div className="text-[10px] uppercase font-bold text-white/50 tracking-wider">Usuário</div>
-          <div className="font-mono text-sm break-all">{email || "—"}</div>
+          <div className="text-[10px] uppercase font-bold text-foreground/50 tracking-wider">Usuário</div>
+          <div className="font-mono text-sm text-foreground break-all">{email || "—"}</div>
         </div>
 
         <div className="space-y-2">
-          <label className="text-xs font-semibold text-white/70 uppercase tracking-wider flex items-center gap-2">
+          <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
             <Lock className="h-3 w-3" /> Trocar senha
           </label>
           <div className="flex gap-2">
@@ -92,11 +92,11 @@ function Configuracoes() {
               type="password" value={novaSenha} minLength={6}
               onChange={(e) => setNovaSenha(e.target.value)}
               placeholder="Nova senha"
-              className="flex-1 px-4 py-3 rounded-xl bg-input border border-glass-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 px-4 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
               onClick={trocarSenha} disabled={savingSenha}
-              className="px-4 rounded-xl gradient-primary font-semibold text-sm disabled:opacity-50 flex items-center gap-2"
+              className="px-4 rounded-xl gradient-primary text-white font-semibold text-sm disabled:opacity-50 flex items-center gap-2"
             >
               {savingSenha && <Loader2 className="h-4 w-4 animate-spin" />}
               Salvar
@@ -106,7 +106,7 @@ function Configuracoes() {
 
         <button
           onClick={sair}
-          className="w-full py-3 rounded-xl glass text-sm font-semibold flex items-center justify-center gap-2 hover:bg-white/10 transition"
+          className="w-full py-3 rounded-xl glass text-foreground text-sm font-semibold flex items-center justify-center gap-2 hover:bg-black/5 transition"
         >
           <LogOut className="h-4 w-4" /> Sair da conta
         </button>
@@ -121,11 +121,11 @@ function Configuracoes() {
             <AlertTriangle className="h-5 w-5 text-destructive" />
           </div>
           <div>
-            <h2 className="text-lg font-bold">Zona de Perigo</h2>
-            <p className="text-xs text-white/60">Ações irreversíveis</p>
+            <h2 className="text-lg font-bold text-foreground">Zona de Perigo</h2>
+            <p className="text-xs text-foreground/60">Ações irreversíveis</p>
           </div>
         </div>
-        <p className="text-sm text-white/70">
+        <p className="text-sm text-foreground/70">
           Zerar o sistema apaga <strong>todas as vendas, despesas, fiados, pagamentos e clientes</strong>.
           Esta ação não pode ser desfeita.
         </p>
@@ -139,11 +139,11 @@ function Configuracoes() {
           </button>
         ) : (
           <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-2">
-            <p className="text-xs text-white/70">Digite <strong>ZERAR</strong> para confirmar:</p>
+            <p className="text-xs text-foreground/70">Digite <strong>ZERAR</strong> para confirmar:</p>
             <input
               value={resetText} onChange={(e) => setResetText(e.target.value)}
               placeholder="ZERAR"
-              className="w-full px-4 py-3 rounded-xl bg-input border border-destructive/50 text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-destructive"
+              className="w-full px-4 py-3 rounded-xl bg-input border border-destructive/50 text-sm text-foreground font-bold uppercase focus:outline-none focus:ring-2 focus:ring-destructive"
             />
             <div className="flex gap-2">
               <button
@@ -155,7 +155,7 @@ function Configuracoes() {
               </button>
               <button
                 onClick={() => { setConfirmReset(false); setResetText(""); }}
-                className="px-4 py-3 rounded-xl glass text-sm"
+                className="px-4 py-3 rounded-xl glass text-foreground text-sm font-medium"
               >
                 Cancelar
               </button>

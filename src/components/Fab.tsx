@@ -96,32 +96,32 @@ export function Fab() {
               onClick={(e) => e.stopPropagation()}
               className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-4 relative"
             >
-              <button onClick={() => setDespOpen(false)} className="absolute top-4 right-4 text-white/50 hover:text-white">
+              <button onClick={() => setDespOpen(false)} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
               <div>
-                <h3 className="text-xl font-extrabold">Nova Despesa</h3>
-                <p className="text-sm text-white/60">Registre uma saída de caixa</p>
+                <h3 className="text-xl font-extrabold text-foreground">Nova Despesa</h3>
+                <p className="text-sm text-foreground/60">Registre uma saída de caixa</p>
               </div>
               <input
                 value={desc} onChange={(e) => setDesc(e.target.value)}
                 placeholder="Descrição"
-                className="w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <input
                 value={valor} onChange={(e) => setValor(e.target.value)}
                 placeholder="Valor (R$)" type="text" inputMode="decimal"
-                className="w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-lg font-bold focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-lg font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <div className="flex gap-2">
                 <button
                   onClick={salvarDespesa}
                   disabled={saving}
-                  className="flex-1 py-3 rounded-xl gradient-primary font-semibold glow hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50"
+                  className="flex-1 py-3 rounded-xl gradient-primary text-white font-semibold glow hover:brightness-110 active:scale-[0.98] transition disabled:opacity-50"
                 >
                   {saving ? "Salvando..." : "Salvar"}
                 </button>
-                <button onClick={() => setDespOpen(false)} className="px-4 py-3 rounded-xl glass">Cancelar</button>
+                <button onClick={() => setDespOpen(false)} className="px-4 py-3 rounded-xl glass text-foreground font-medium">Cancelar</button>
               </div>
             </motion.div>
           </motion.div>
