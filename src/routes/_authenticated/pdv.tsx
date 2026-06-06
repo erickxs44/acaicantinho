@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, dateBR } from "@/lib/format";
+import { saveState, loadState } from "@/lib/offline-storage";
 import { toast } from "sonner";
 import { Plus, X, Search, CreditCard, Banknote, Smartphone, ReceiptText, ArrowUpRight } from "lucide-react";
 
@@ -17,7 +18,7 @@ type Venda = { id: string; produto: string; valor: number; tipo_pagamento: strin
 
 function PDV() {
   const [pgto, setPgto] = useState<Pgto>("pix");
-  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>(() => loadState("pdvClientes", []));
   const [busca, setBusca] = useState("");
   const [clienteSel, setClienteSel] = useState<Cliente | null>(null);
   const [novoCliente, setNovoCliente] = useState(false);
@@ -33,7 +34,7 @@ function PDV() {
   const [valorPagoAVista, setValorPagoAVista] = useState("");
   const [metodoPagoAVista, setMetodoPagoAVista] = useState<"pix" | "cartao" | "dinheiro">("pix");
 
-  const [recentSales, setRecentSales] = useState<Venda[]>([]);
+  const [recentSales, setRecentSales] = useState<Venda[]>(() => loadState("pdvRecentSales", []));
 
   useEffect(() => { 
     loadClientes(); 
@@ -42,12 +43,16 @@ function PDV() {
 
   async function loadClientes() {
     const { data } = await supabase.from("clientes").select("id,nome,telefone").order("nome");
-    setClientes(data ?? []);
+    const clis = data ?? [];
+    setClientes(clis);
+    saveState("pdvClientes", clis);
   }
 
   async function loadRecentSales() {
     const { data } = await supabase.from("vendas").select("id,produto,valor,tipo_pagamento,created_at").order("created_at", { ascending: false }).limit(10);
-    setRecentSales(data ?? []);
+    const sales = data ?? [];
+    setRecentSales(sales);
+    saveState("pdvRecentSales", sales);
   }
 
   const filtered = busca ? clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase())) : clientes;
@@ -197,11 +202,11 @@ function PDV() {
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
                   <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Pedido / Produto</label>
-                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="input-base" />
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Combo 1" className="input-base" />
                 </div>
                 <div>
                   <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
-                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
                 </div>
               </div>
 
@@ -242,7 +247,7 @@ function PDV() {
                     <div className="flex gap-2">
                       <div className="flex-1">
                         <label className="text-xs text-foreground/60 ml-1">Valor pago agora</label>
-                        <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
+                        <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
                       </div>
                       <div className="flex-1">
                         <label className="text-xs text-foreground/60 ml-1">Método</label>
@@ -275,6 +280,7 @@ function PDV() {
                         <input
                           value={busca}
                           onChange={(e) => setBusca(e.target.value)}
+                          onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                           placeholder="Buscar cliente..."
                           className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         />
@@ -291,8 +297,8 @@ function PDV() {
                       </div>
                       {novoCliente ? (
                         <div className="glass rounded-xl p-3 space-y-2">
-                          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
-                          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
+                          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
+                          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" type="tel" inputMode="tel" />
                           <div className="flex gap-2">
                             <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-white text-sm font-semibold">Cadastrar</button>
                             <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-foreground text-sm">Cancelar</button>

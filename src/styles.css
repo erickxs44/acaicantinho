@@ -133,6 +133,15 @@
   --glass-border: var(--white-10);
 
   --gradient-bg: var(--purple-950);
+  --gradient-secondary: linear-gradient(135deg, var(--purple-700), var(--purple-900));
+
+  /* Fluid Typography */
+  --font-display-fluid: clamp(18px, 2.5vw, 24px);
+  --font-title-fluid: clamp(14px, 1.8vw, 18px);
+  --font-body-fluid: clamp(13px, 1.4vw, 15px);
+  --font-small-fluid: clamp(11px, 1.1vw, 13px);
+  --card-value-fluid: clamp(18px, 2.2vw, 24px);
+
   --gradient-primary: linear-gradient(135deg, var(--purple-700), var(--purple-600));
   --gradient-emerald: linear-gradient(135deg, #1abf8f, #22d3a5);
   --shadow-glow: 0 0 24px -4px rgba(124,58,237,0.5);
@@ -149,13 +158,21 @@
   }
 
   html, body {
-    font-family: var(--font-sans);
-    background: var(--purple-950);
-    color: var(--white-90);
+    background-color: var(--purple-950);
+    color: var(--foreground);
     min-height: 100vh;
+    font-family: var(--font-sans);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
     margin: 0;
-    padding: 0;
     overflow-x: hidden;
+  }
+
+  /* Optimize touch interactions */
+  a, button, input, select, textarea {
+    touch-action: manipulation;
   }
 
   h1, h2, h3, h4, h5, h6 {

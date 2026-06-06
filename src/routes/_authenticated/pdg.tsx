@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
+import { saveState, loadState } from "@/lib/offline-storage";
 import { toast } from "sonner";
 import { Plus, X, ArrowDownRight } from "lucide-react";
 
@@ -17,7 +18,7 @@ function PDG() {
   const [valor, setValor] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const [recentDespesas, setRecentDespesas] = useState<{ id: string; descricao: string; valor: number }[]>([]);
+  const [recentDespesas, setRecentDespesas] = useState<{ id: string; descricao: string; valor: number }[]>(() => loadState("pdgRecentDespesas", []));
 
   useEffect(() => {
     loadRecentDespesas();
@@ -25,7 +26,9 @@ function PDG() {
 
   async function loadRecentDespesas() {
     const { data } = await supabase.from("despesas").select("id,descricao,valor").order("created_at", { ascending: false }).limit(10);
-    setRecentDespesas(data ?? []);
+    const desp = data ?? [];
+    setRecentDespesas(desp);
+    saveState("pdgRecentDespesas", desp);
   }
 
   const finalizar = async () => {
@@ -142,11 +145,11 @@ function PDG() {
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
                   <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Descrição</label>
-                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Conta de luz" className="input-base" />
+                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Conta de luz" className="input-base" />
                 </div>
                 <div>
                   <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
-                  <input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
+                  <input value={valor} onChange={(e) => setValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
                 </div>
               </div>
               <button

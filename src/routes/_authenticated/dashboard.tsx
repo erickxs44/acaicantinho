@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, dayKey, dayLabel } from "@/lib/format";
+import { saveState, loadState } from "@/lib/offline-storage";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Cantinho do Açaí" }] }),
@@ -48,14 +49,14 @@ function todayPT() {
 }
 
 function Dashboard() {
-  const [stats, setStats] = useState<Stats>({
+  const [stats, setStats] = useState<Stats>(() => loadState("dashboardStats", {
     vendas: 0, despesas: 0, lucro: 0, fiados: 0,
     chartVendas: [], chartDespesas: [], chartFiados: [],
-  });
+  }));
   const [loading, setLoading] = useState(true);
   const [activePeriod, setActivePeriod] = useState(1); // default "7d"
-  const [recentMovs, setRecentMovs] = useState<RecentMov[]>([]);
-  const [topFiados, setTopFiados] = useState<ClienteFiado[]>([]);
+  const [recentMovs, setRecentMovs] = useState<RecentMov[]>(() => loadState("dashboardRecent", []));
+  const [topFiados, setTopFiados] = useState<ClienteFiado[]>(() => loadState("dashboardTopFiados", []));
 
   const dataPadraoFim = new Date();
   const dataPadraoInicio = new Date();
@@ -199,6 +200,16 @@ function Dashboard() {
       .sort((a, b) => b.emAberto - a.emAberto)
       .slice(0, 5);
     setTopFiados(sorted);
+
+    // Salva os estados offline
+    saveState("dashboardStats", {
+      vendas: faturamentoTotal, despesas: despesasTotal, lucro: faturamentoTotal - despesasTotal, fiados: fiadosAberto,
+      chartVendas: days.map(({ day, vendas }) => ({ day, valor: vendas })),
+      chartDespesas: days.map(({ day, despesas }) => ({ day, valor: despesas })),
+      chartFiados: days.map(({ day, fiados }) => ({ day, valor: fiados })),
+    });
+    saveState("dashboardRecent", allMovs);
+    saveState("dashboardTopFiados", sorted);
 
     setLoading(false);
   }
@@ -385,7 +396,11 @@ function Dashboard() {
             padding: 4,
             display: "flex",
             gap: 4,
-          }}>
+            overflowX: "auto",
+            scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch",
+            scrollbarWidth: "none",
+          }} className="period-filter-container">
             {PERIODS.map((p, i) => (
               <button
                 key={p.label}
@@ -696,13 +711,13 @@ function KpiCard({
           <span style={{
             fontFamily: "var(--font-display)",
             fontWeight: 700,
-            fontSize: 28,
+            fontSize: "var(--card-value-fluid, 28px)",
             letterSpacing: "-1px",
             lineHeight: 1,
             color: "white",
           }}>
             R$&nbsp;{intPart}
-            <span style={{ fontSize: 18, opacity: 0.7 }}>,{decPart}</span>
+            <span style={{ fontSize: "0.65em", opacity: 0.7 }}>,{decPart}</span>
           </span>
         )}
       </div>

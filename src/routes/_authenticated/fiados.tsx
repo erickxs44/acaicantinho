@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/format";
+import { saveState, loadState } from "@/lib/offline-storage";
 import { toast } from "sonner";
 import { CheckCircle2, FileText, Plus, X, ShoppingBag, Wallet, Trash2 } from "lucide-react";
 
@@ -30,9 +31,9 @@ function dateTimeBR(isoString: string) {
 }
 
 function Fiados() {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [fiados, setFiados] = useState<Fiado[]>([]);
-  const [pagamentos, setPagamentos] = useState<Pagamento[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>(() => loadState("fiadosClientes", []));
+  const [fiados, setFiados] = useState<Fiado[]>(() => loadState("fiadosRegistros", []));
+  const [pagamentos, setPagamentos] = useState<Pagamento[]>(() => loadState("fiadosPagamentos", []));
   
   const [reportOpen, setReportOpen] = useState<string | null>(null);
   
@@ -54,9 +55,15 @@ function Fiados() {
       supabase.from("fiados_registros").select("*").order("created_at", { ascending: false }),
       supabase.from("fiados_pagamentos").select("id,fiado_id,valor,created_at").order("created_at", { ascending: false }),
     ]);
-    setClientes(c.data ?? []);
-    setFiados(f.data ?? []);
-    setPagamentos(p.data ?? []);
+    const clis = c.data ?? [];
+    const fiad = f.data ?? [];
+    const pags = p.data ?? [];
+    setClientes(clis);
+    setFiados(fiad);
+    setPagamentos(pags);
+    saveState("fiadosClientes", clis);
+    saveState("fiadosRegistros", fiad);
+    saveState("fiadosPagamentos", pags);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -345,7 +352,7 @@ function Fiados() {
 
             <div className="mt-4">
               <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor Recebido (R$)</label>
-              <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} type="text" inputMode="decimal" placeholder="0.00" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-lg font-bold text-foreground focus:ring-2 focus:ring-emerald-brand focus:outline-none" />
+              <input value={payAmount} onChange={(e) => setPayAmount(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} type="text" inputMode="decimal" placeholder="0.00" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-lg font-bold text-foreground focus:ring-2 focus:ring-emerald-brand focus:outline-none" />
             </div>
 
             {/* Preview do novo saldo */}
@@ -371,11 +378,11 @@ function Fiados() {
             <div className="space-y-3 pt-4">
               <div>
                 <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Descrição da Dívida</label>
-                <input value={debtDesc} onChange={(e) => setDebtDesc(e.target.value)} placeholder="Ex: Adicional, Pedido pelo WhatsApp..." className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-fiado-foreground focus:outline-none" />
+                <input value={debtDesc} onChange={(e) => setDebtDesc(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Adicional, Pedido pelo WhatsApp..." className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-fiado-foreground focus:outline-none" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor da Dívida</label>
-                <input value={debtValor} onChange={(e) => setDebtValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input font-bold text-lg text-foreground focus:ring-2 focus:ring-fiado-foreground focus:outline-none" />
+                <input value={debtValor} onChange={(e) => setDebtValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input font-bold text-lg text-foreground focus:ring-2 focus:ring-fiado-foreground focus:outline-none" />
               </div>
             </div>
 
@@ -449,11 +456,11 @@ function NewClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
       <div className="space-y-3 pt-2">
         <div>
           <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Nome Completo</label>
-          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} placeholder="Ex: João da Silva" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
+          <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: João da Silva" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
         <div>
           <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Telefone (Opcional)</label>
-          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} placeholder="(00) 00000-0000" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
+          <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="(00) 00000-0000" type="tel" inputMode="tel" className="w-full mt-1 px-4 py-3 rounded-xl bg-input text-sm text-foreground focus:ring-2 focus:ring-ring focus:outline-none" />
         </div>
       </div>
       <div className="flex gap-2 pt-2">

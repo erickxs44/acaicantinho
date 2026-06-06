@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,8 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Cantinho do açaí" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" },
+      { name: "theme-color", content: "#5429a8" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { title: "FinançasPro" },
       { name: "description", content: "Sistema financeiro" },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Cantinho do açaí" },
@@ -92,6 +95,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/uJqyNGrN8iO1Ih0d41f0hfj61J42/social-images/social-1780538757425-1000234159.webp" },
     ],
     links: [
+      {
+        rel: "manifest",
+        href: "/manifest.json",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.googleapis.com",
+      },
+      {
+        rel: "preconnect",
+        href: "https://fonts.gstatic.com",
+        crossOrigin: "anonymous",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -120,6 +136,45 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    // Register Service Worker
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").then(
+          (registration) => {
+            console.log("ServiceWorker registration successful with scope: ", registration.scope);
+          },
+          (err) => {
+            console.log("ServiceWorker registration failed: ", err);
+          }
+        );
+      });
+    }
+
+    // PWA Install Prompt
+    let deferredPrompt: any;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      toast("Instale o FinançasPro", {
+        description: "Adicione o app à sua tela inicial para uma melhor experiência offline.",
+        action: {
+          label: "Instalar",
+          onClick: () => {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then((choiceResult: any) => {
+              if (choiceResult.outcome === "accepted") {
+                console.log("User accepted the A2HS prompt");
+              }
+              deferredPrompt = null;
+            });
+          },
+        },
+        duration: 10000,
+      });
+    });
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

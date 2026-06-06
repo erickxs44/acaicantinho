@@ -29,9 +29,9 @@ export function Fab() {
       <AnimatePresence>
         {open && (
           <div
+            className="bottom-[calc(140px+env(safe-area-inset-bottom))] md:bottom-[100px]"
             style={{
               position: "fixed",
-              bottom: 100,
               right: 32,
               zIndex: 200,
               display: "flex",
@@ -164,6 +164,7 @@ export function Fab() {
 
       {/* FAB Main Button */}
       <motion.button
+        className="bottom-[calc(70px+env(safe-area-inset-bottom))] md:bottom-8"
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
         animate={{ rotate: open ? 45 : 0 }}
@@ -172,10 +173,9 @@ export function Fab() {
         aria-label="Ações rápidas"
         style={{
           position: "fixed",
-          bottom: 32,
           right: 32,
-          width: 56,
-          height: 56,
+          minWidth: 56,
+          minHeight: 56,
           borderRadius: 18,
           background: "linear-gradient(135deg, #7c3aed, #9d5bf5)",
           boxShadow: open

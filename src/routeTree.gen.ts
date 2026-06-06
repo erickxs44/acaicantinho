@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPdvRouteImport } from './routes/_authenticated/pdv'
+import { Route as AuthenticatedPdgRouteImport } from './routes/_authenticated/pdg'
 import { Route as AuthenticatedMovimentacaoRouteImport } from './routes/_authenticated/movimentacao'
 import { Route as AuthenticatedFiadosRouteImport } from './routes/_authenticated/fiados'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedPdvRoute = AuthenticatedPdvRouteImport.update({
   id: '/pdv',
   path: '/pdv',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPdgRoute = AuthenticatedPdgRouteImport.update({
+  id: '/pdg',
+  path: '/pdg',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMovimentacaoRoute =
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fiados': typeof AuthenticatedFiadosRoute
   '/movimentacao': typeof AuthenticatedMovimentacaoRoute
+  '/pdg': typeof AuthenticatedPdgRoute
   '/pdv': typeof AuthenticatedPdvRoute
 }
 export interface FileRoutesByTo {
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/fiados': typeof AuthenticatedFiadosRoute
   '/movimentacao': typeof AuthenticatedMovimentacaoRoute
+  '/pdg': typeof AuthenticatedPdgRoute
   '/pdv': typeof AuthenticatedPdvRoute
 }
 export interface FileRoutesById {
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/fiados': typeof AuthenticatedFiadosRoute
   '/_authenticated/movimentacao': typeof AuthenticatedMovimentacaoRoute
+  '/_authenticated/pdg': typeof AuthenticatedPdgRoute
   '/_authenticated/pdv': typeof AuthenticatedPdvRoute
 }
 export interface FileRouteTypes {
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fiados'
     | '/movimentacao'
+    | '/pdg'
     | '/pdv'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/fiados'
     | '/movimentacao'
+    | '/pdg'
     | '/pdv'
   id:
     | '__root__'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/fiados'
     | '/_authenticated/movimentacao'
+    | '/_authenticated/pdg'
     | '/_authenticated/pdv'
   fileRoutesById: FileRoutesById
 }
@@ -156,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPdvRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pdg': {
+      id: '/_authenticated/pdg'
+      path: '/pdg'
+      fullPath: '/pdg'
+      preLoaderRoute: typeof AuthenticatedPdgRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/movimentacao': {
       id: '/_authenticated/movimentacao'
       path: '/movimentacao'
@@ -192,6 +211,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFiadosRoute: typeof AuthenticatedFiadosRoute
   AuthenticatedMovimentacaoRoute: typeof AuthenticatedMovimentacaoRoute
+  AuthenticatedPdgRoute: typeof AuthenticatedPdgRoute
   AuthenticatedPdvRoute: typeof AuthenticatedPdvRoute
 }
 
@@ -200,6 +220,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFiadosRoute: AuthenticatedFiadosRoute,
   AuthenticatedMovimentacaoRoute: AuthenticatedMovimentacaoRoute,
+  AuthenticatedPdgRoute: AuthenticatedPdgRoute,
   AuthenticatedPdvRoute: AuthenticatedPdvRoute,
 }
 
@@ -214,3 +235,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
