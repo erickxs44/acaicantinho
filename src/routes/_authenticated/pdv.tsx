@@ -120,37 +120,51 @@ function PDV() {
   const restanteFiado = valorNumTemp - aVistaNumTemp;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 32 }}>
         <div>
-          <h1 className="text-3xl font-extrabold mb-1 text-foreground">PDV Simplificado</h1>
-          <p className="text-foreground/60">Registros rápidos de vendas</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.5px", color: "white", margin: 0 }}>PDV</h1>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--white-70)", marginTop: 2 }}>Ponto de venda</p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setModalOpen(true)}
-          className="px-6 py-3 rounded-2xl gradient-primary font-bold text-white flex items-center gap-2 glow hover:brightness-110"
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "linear-gradient(135deg, #5a2d9c, #7c3aed)",
+            color: "white", border: "none",
+            borderRadius: 12, padding: "12px 20px",
+            fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 14,
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(124,58,237,0.4)",
+          }}
         >
           <Plus className="h-5 w-5" /> Registrar Venda
         </motion.button>
-      </header>
+      </div>
 
-      <div className="glass-strong rounded-3xl p-6 min-h-[400px]">
-        <h2 className="text-xl font-bold mb-4 text-foreground">Vendas Recentes</h2>
-        <div className="space-y-3">
+      <div className="panel" style={{ minHeight: 400 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "white", marginBottom: 16 }}>Vendas Recentes</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {recentSales.length === 0 ? (
-            <p className="text-center text-foreground/40 py-12">Nenhuma venda recente.</p>
+            <p style={{ textAlign: "center", color: "var(--white-70)", padding: "48px 0", fontFamily: "var(--font-sans)" }}>Nenhuma venda recente.</p>
           ) : (
             recentSales.map((v) => (
-              <motion.div key={v.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-4 flex items-center gap-4">
-                <div className="h-10 w-10 rounded-xl bg-emerald-brand/10 text-emerald-brand flex items-center justify-center">
+              <motion.div key={v.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  background: "var(--white-5)", border: "1px solid rgba(34,211,165,0.1)",
+                  borderRadius: 14, padding: "14px 16px",
+                }}
+              >
+                <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: "rgba(34,211,165,0.15)", color: "#22d3a5", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <ArrowUpRight className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate text-foreground">{v.produto}</div>
-                  <div className="text-xs text-foreground/50">{dateBR(v.created_at)} • {v.tipo_pagamento}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.produto}</div>
+                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--white-70)" }}>{dateBR(v.created_at)} · {v.tipo_pagamento}</div>
                 </div>
-                <div className="font-extrabold text-emerald-brand text-lg">{brl(v.valor)}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, color: "#22d3a5", flexShrink: 0 }}>{brl(v.valor)}</div>
               </motion.div>
             ))
           )}
@@ -161,7 +175,7 @@ function PDV() {
         {modalOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
             onClick={() => setModalOpen(false)}
           >
             <motion.div
@@ -170,26 +184,30 @@ function PDV() {
               exit={{ y: 80, opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative max-h-[90vh] overflow-y-auto"
+              style={{
+                background: "var(--purple-800)", border: "1px solid var(--white-10)",
+                borderRadius: 24, padding: 28, width: "100%", maxWidth: 440,
+                position: "relative", maxHeight: "90vh", overflowY: "auto",
+                display: "flex", flexDirection: "column", gap: 18,
+              }}
             >
-              <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
+              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
               
-              <h2 className="text-2xl font-bold text-foreground">Nova Venda</h2>
-              
-              <div className="space-y-3">
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "white", margin: 0 }}>Nova Venda</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Pedido / Produto</label>
-                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none text-foreground" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Pedido / Produto</label>
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="input-base" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor Total</label>
-                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none font-bold text-lg text-foreground" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
                 </div>
               </div>
 
-              <div className="border-t border-glass-border pt-4">
-                <div className="text-xs font-semibold text-foreground/60 uppercase tracking-wider mb-2">Pagamento</div>
-                <div className="grid grid-cols-4 gap-2">
+              <div style={{ borderTop: "1px solid var(--white-10)", paddingTop: 16 }}>
+                <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", marginBottom: 10 }}>Pagamento</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
                   {([
                     { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
                     { v: "cartao", l: "Cartão", i: <CreditCard className="h-4 w-4" /> },
@@ -199,9 +217,16 @@ function PDV() {
                     <button
                       key={o.v}
                       onClick={() => setPgto(o.v)}
-                      className={`flex flex-col items-center gap-1 py-3 rounded-xl text-xs font-semibold transition ${
-                        pgto === o.v ? "gradient-primary text-white glow" : "glass text-foreground/70 hover:text-foreground"
-                      }`}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                        padding: "12px 4px", borderRadius: 12,
+                        fontFamily: "var(--font-sans)", fontSize: 11, fontWeight: 600,
+                        cursor: "pointer", transition: "all 0.2s",
+                        background: pgto === o.v ? "linear-gradient(135deg, #5a2d9c, #7c3aed)" : "var(--white-5)",
+                        color: pgto === o.v ? "white" : "var(--white-70)",
+                        border: pgto === o.v ? "1px solid rgba(124,58,237,0.4)" : "1px solid var(--white-10)",
+                        boxShadow: pgto === o.v ? "0 2px 8px rgba(124,58,237,0.4)" : "none",
+                      }}
                     >
                       {o.i} {o.l}
                     </button>
@@ -286,7 +311,8 @@ function PDV() {
               <button
                 onClick={finalizar}
                 disabled={saving}
-                className="w-full py-4 rounded-xl gradient-primary text-white font-bold text-lg glow hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40"
+                className="btn-primary"
+                style={{ width: "100%", padding: "14px 0", fontSize: 15, borderRadius: 12, opacity: saving ? 0.5 : 1 }}
               >
                 {saving ? "Salvando..." : "Confirmar Venda"}
               </button>

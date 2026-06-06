@@ -56,36 +56,62 @@ function PDG() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
-      <header className="flex flex-wrap items-center justify-between gap-4">
+    <div style={{ maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 32 }}>
         <div>
-          <h1 className="text-3xl font-extrabold mb-1 text-foreground">PDG Simplificado</h1>
-          <p className="text-foreground/60">Registros rápidos de gastos/despesas</p>
+          <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.5px", color: "white", margin: 0 }}>
+            PDG — Despesas
+          </h1>
+          <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--white-70)", marginTop: 2 }}>
+            Registre saídas e gastos do caixa
+          </p>
         </div>
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setModalOpen(true)}
-          className="px-6 py-3 rounded-2xl bg-destructive text-destructive-foreground font-bold flex items-center gap-2 hover:brightness-110 shadow-[0_0_20px_rgba(255,100,100,0.4)] transition"
+          style={{
+            display: "flex", alignItems: "center", gap: 8,
+            background: "rgba(244,97,123,0.15)",
+            color: "#f4617b",
+            border: "1px solid rgba(244,97,123,0.25)",
+            borderRadius: 12,
+            padding: "12px 20px",
+            fontFamily: "var(--font-sans)",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer",
+            transition: "all 0.2s",
+          }}
         >
           <Plus className="h-5 w-5" /> Registrar Despesa
         </motion.button>
-      </header>
+      </div>
 
-      <div className="glass-strong rounded-3xl p-6 min-h-[400px]">
-        <h2 className="text-xl font-bold mb-4 text-foreground">Despesas Recentes</h2>
-        <div className="space-y-3">
+      <div className="panel" style={{ minHeight: 400 }}>
+        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "white", marginBottom: 16 }}>Despesas Recentes</h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {recentDespesas.length === 0 ? (
-            <p className="text-center text-foreground/40 py-12">Nenhuma despesa recente.</p>
+            <p style={{ textAlign: "center", color: "var(--white-70)", padding: "48px 0", fontFamily: "var(--font-sans)" }}>Nenhuma despesa recente.</p>
           ) : (
             recentDespesas.map((d) => (
-              <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-xl p-4 flex items-center gap-4 border border-destructive/10">
-                <div className="h-10 w-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
+              <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 14,
+                  background: "var(--white-5)", border: "1px solid rgba(244,97,123,0.1)",
+                  borderRadius: 14, padding: "14px 16px",
+                }}
+              >
+                <div style={{
+                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                  background: "rgba(244,97,123,0.15)", color: "#f4617b",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
                   <ArrowDownRight className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-bold truncate text-foreground">{d.descricao}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.descricao}</div>
                 </div>
-                <div className="font-extrabold text-destructive text-lg">{brl(d.valor)}</div>
+                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, color: "#f4617b", flexShrink: 0 }}>{brl(d.valor)}</div>
               </motion.div>
             ))
           )}
@@ -96,7 +122,7 @@ function PDG() {
         {modalOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
             onClick={() => setModalOpen(false)}
           >
             <motion.div
@@ -105,27 +131,29 @@ function PDG() {
               exit={{ y: 80, opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative max-h-[90vh] overflow-y-auto"
+              style={{
+                background: "var(--purple-800)", border: "1px solid var(--white-10)",
+                borderRadius: 24, padding: 28, width: "100%", maxWidth: 440,
+                position: "relative",
+              }}
             >
-              <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
-              
-              <h2 className="text-2xl font-bold text-foreground">Nova Despesa</h2>
-              
-              <div className="space-y-3">
+              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "white", marginBottom: 20 }}>Nova Despesa</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 <div>
-                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Descrição</label>
-                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Conta de luz" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-destructive focus:outline-none text-foreground" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Descrição</label>
+                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} placeholder="Ex: Conta de luz" className="input-base" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor Total</label>
-                  <input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-destructive focus:outline-none font-bold text-lg text-foreground" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
+                  <input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
                 </div>
               </div>
-
               <button
                 onClick={finalizar}
                 disabled={saving}
-                className="w-full py-4 rounded-xl bg-destructive text-destructive-foreground font-bold text-lg hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 mt-4 shadow-[0_0_20px_rgba(255,100,100,0.4)]"
+                className="btn-destructive"
+                style={{ width: "100%", padding: "14px 0", fontSize: 15, marginTop: 20, borderRadius: 12 }}
               >
                 {saving ? "Salvando..." : "Confirmar Despesa"}
               </button>
