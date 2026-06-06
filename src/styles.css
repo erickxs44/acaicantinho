@@ -54,53 +54,53 @@
 :root {
   --radius: 1rem;
 
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.15 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
+  --background: oklch(0.10 0.01 300);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.14 0.02 300);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.14 0.02 300);
+  --popover-foreground: oklch(0.95 0 0);
   
   /* Strong Purple Primary */
-  --primary: oklch(0.55 0.28 300);
-  --primary-foreground: oklch(0.98 0.02 300);
-  --secondary: oklch(0.95 0 0);
-  --secondary-foreground: oklch(0.20 0 0);
-  --muted: oklch(0.95 0 0);
-  --muted-foreground: oklch(0.45 0 0);
-  --accent: oklch(0.95 0 0);
-  --accent-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.65 0.30 300);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.18 0.03 300);
+  --secondary-foreground: oklch(0.90 0 0);
+  --muted: oklch(0.18 0.03 300);
+  --muted-foreground: oklch(0.60 0 0);
+  --accent: oklch(0.20 0.04 300);
+  --accent-foreground: oklch(0.95 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0 0 0 / 10%);
-  --input: oklch(0 0 0 / 10%);
-  --ring: oklch(0.55 0.28 300);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 8%);
+  --ring: oklch(0.65 0.30 300);
 
-  /* Brand / Neon - Light Purple details */
-  --acai: oklch(0.65 0.30 300);
-  --acai-deep: oklch(0.45 0.25 300);
-  --neon: oklch(0.65 0.30 300);
-  --emerald-brand: oklch(0.65 0.20 150);
+  /* Brand / Neon - Purple Neon */
+  --acai: oklch(0.70 0.30 300);
+  --acai-deep: oklch(0.50 0.28 300);
+  --neon: oklch(0.70 0.30 300);
+  --emerald-brand: oklch(0.70 0.22 150);
 
   /* KPI cards */
-  --sales: oklch(1 0 0);
-  --sales-foreground: oklch(0 0 0);
-  --expense: oklch(1 0 0);
-  --expense-foreground: oklch(0.55 0.22 25);
-  --profit: oklch(1 0 0);
-  --profit-foreground: oklch(0.60 0.18 150);
-  --fiado: oklch(1 0 0);
-  --fiado-foreground: oklch(0.75 0.18 85);
+  --sales: oklch(0.14 0.02 300);
+  --sales-foreground: oklch(0.98 0 0);
+  --expense: oklch(0.14 0.02 300);
+  --expense-foreground: oklch(0.65 0.22 25);
+  --profit: oklch(0.14 0.02 300);
+  --profit-foreground: oklch(0.70 0.20 150);
+  --fiado: oklch(0.14 0.02 300);
+  --fiado-foreground: oklch(0.80 0.18 85);
 
   /* Glass */
-  --glass: oklch(1 0 0 / 0.6);
-  --glass-border: oklch(0 0 0 / 0.08);
+  --glass: oklch(1 0 0 / 0.04);
+  --glass-border: oklch(1 0 0 / 0.10);
 
   --gradient-bg: var(--background);
   --gradient-primary: linear-gradient(135deg, var(--acai-deep), var(--acai));
   --gradient-emerald: linear-gradient(135deg, oklch(0.65 0.20 150), oklch(0.55 0.18 150));
-  --shadow-glow: 0 0 20px -2px color-mix(in oklab, var(--neon) 60%, transparent);
-  --shadow-card: 0 4px 20px -4px oklch(0 0 0 / 0.05);
+  --shadow-glow: 0 0 24px -4px color-mix(in oklab, var(--neon) 70%, transparent);
+  --shadow-card: 0 8px 32px -8px oklch(0 0 0 / 0.5);
 }
 
 @layer base {
@@ -129,7 +129,7 @@
     box-shadow: var(--shadow-card);
   }
   .glass-strong {
-    background: oklch(1 0 0 / 0.85);
+    background: oklch(1 0 0 / 0.05);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(28px) saturate(160%);
     -webkit-backdrop-filter: blur(28px) saturate(160%);
