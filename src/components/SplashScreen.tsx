@@ -19,9 +19,9 @@ export function SplashScreen() {
         <motion.div
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-          className="flex h-24 w-24 items-center justify-center rounded-3xl gradient-primary glow text-5xl"
+          className="h-28 w-28 rounded-3xl overflow-hidden bg-white flex items-center justify-center p-2 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
         >
-          🍇
+          <img src="/logo.png" alt="Cantinho do Açaí" className="w-full h-full object-contain" />
         </motion.div>
         <h1 className="text-4xl font-extrabold tracking-tight text-white">
           Cantinho do <span className="text-gradient">Açaí</span>

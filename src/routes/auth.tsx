@@ -86,39 +86,39 @@ function AuthPage() {
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 14, delay: 0.2 }}
-            className="h-16 w-16 rounded-2xl gradient-primary glow flex items-center justify-center text-3xl"
+            className="h-20 w-20 rounded-2xl overflow-hidden bg-white flex items-center justify-center p-1 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
           >
-            🍇
+            <img src="/logo.png" alt="Cantinho do Açaí" className="w-full h-full object-contain" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-            className="text-3xl font-extrabold text-center"
+            className="text-3xl font-extrabold text-center text-foreground"
           >
             Cantinho do <span className="text-gradient">Açaí</span>
           </motion.h1>
-          <p className="text-sm text-white/60">Acesso administrativo</p>
+          <p className="text-sm text-foreground/60">Acesso administrativo</p>
         </div>
 
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div>
-            <label className="text-xs font-semibold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
               <User className="h-3 w-3" /> Usuário
             </label>
             <input
               required value={usuario} autoComplete="username"
               onChange={(e) => setUsuario(e.target.value)}
-              className="mt-1 w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ring transition"
+              className="mt-1 w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring transition"
               placeholder="adm"
             />
           </div>
           <div>
-            <label className="text-xs font-semibold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
               <Lock className="h-3 w-3" /> Senha
             </label>
             <input
               type="password" required value={senha} autoComplete="current-password"
               onChange={(e) => setSenha(e.target.value)}
-              className="mt-1 w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-ring transition"
+              className="mt-1 w-full px-4 py-3 rounded-xl bg-input border border-glass-border text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-2 focus:ring-ring transition"
               placeholder="••••••••"
             />
           </div>
