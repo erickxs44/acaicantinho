@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { ArrowDownLeft, ArrowUpRight, Search, Trash2, Filter } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/movimentacao")({
-  head: () => ({ meta: [{ title: "Movimentação — Cantinho do Açaí" }] }),
+  head: () => ({ meta: [{ title: "Movimentações — Cantinho do Açaí" }] }),
   component: Movimentacao,
 });
 
@@ -16,21 +16,15 @@ type Tab = "todos" | "entradas" | "saidas" | "fiados";
 
 function Movimentacao() {
   const [rows, setRows] = useState<Row[]>([]);
-  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
-  
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<Tab>("todos");
 
   const load = useCallback(async () => {
-    const start = new Date(date + "T00:00:00").toISOString();
-    const endDate = new Date(date + "T00:00:00");
-    endDate.setDate(endDate.getDate() + 1);
-    const end = endDate.toISOString();
-
+    // Busca os últimos 50 registros de cada tabela para popular o histórico recente
     const [v, d, p] = await Promise.all([
-      supabase.from("vendas").select("id,produto,valor,is_fiado,created_at,tipo_pagamento").gte("created_at", start).lt("created_at", end).order("created_at", { ascending: false }),
-      supabase.from("despesas").select("id,descricao,valor,created_at").gte("created_at", start).lt("created_at", end).order("created_at", { ascending: false }),
-      supabase.from("fiados_pagamentos").select("id,valor,created_at,fiado_id").gte("created_at", start).lt("created_at", end).order("created_at", { ascending: false }),
+      supabase.from("vendas").select("id,produto,valor,is_fiado,created_at,tipo_pagamento").order("created_at", { ascending: false }).limit(50),
+      supabase.from("despesas").select("id,descricao,valor,created_at").order("created_at", { ascending: false }).limit(50),
+      supabase.from("fiados_pagamentos").select("id,valor,created_at,fiado_id").order("created_at", { ascending: false }).limit(50),
     ]);
     const all: Row[] = [
       ...(v.data ?? []).map((x) => ({
@@ -42,7 +36,7 @@ function Movimentacao() {
       ...(d.data ?? []).map((x) => ({ id: x.id, tipo: "saida" as const, descricao: x.descricao, valor: Number(x.valor), created_at: x.created_at, table: "despesas" })),
     ].sort((a, b) => b.created_at.localeCompare(a.created_at));
     setRows(all);
-  }, [date]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -53,14 +47,30 @@ function Movimentacao() {
   }, [load]);
 
   const remove = async (r: Row) => {
-    if (!confirm("Remover esse lançamento?")) return;
-    const { error } = await supabase.from(r.table as any).delete().eq("id", r.id);
-    if (error) return toast.error(error.message);
-    toast.success("Removido"); load();
+    if (!confirm("Deseja realmente estornar/excluir esse lançamento? Essa ação afeta o fluxo de caixa.")) return;
+    
+    try {
+      if (r.table === "vendas") {
+        // Exclusão em cascata manual (Pagamentos -> Fiado -> Venda)
+        const { data: fiado } = await supabase.from("fiados_registros").select("id").eq("venda_id", r.id).maybeSingle();
+        if (fiado) {
+          await supabase.from("fiados_pagamentos").delete().eq("fiado_id", fiado.id);
+          await supabase.from("fiados_registros").delete().eq("id", fiado.id);
+        }
+        const { error } = await supabase.from("vendas").delete().eq("id", r.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from(r.table as any).delete().eq("id", r.id);
+        if (error) throw error;
+      }
+      
+      toast.success("Estorno realizado com sucesso!"); 
+      load();
+      window.dispatchEvent(new CustomEvent("data:changed"));
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
-
-  const entradas = rows.filter((r) => r.tipo === "entrada").reduce((s, r) => s + r.valor, 0);
-  const saidas = rows.filter((r) => r.tipo === "saida").reduce((s, r) => s + r.valor, 0);
 
   // Lógica de Filtros
   const filteredRows = rows.filter((r) => {
@@ -84,37 +94,10 @@ function Movimentacao() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground">Movimentação</h1>
-          <p className="text-foreground/60">Entradas e saídas do dia</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="px-4 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          <h1 className="text-3xl font-extrabold text-foreground">Movimentações</h1>
+          <p className="text-foreground/60">Histórico e estornos</p>
         </div>
       </header>
-
-      <div className="grid grid-cols-2 gap-4">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-          whileHover={{ y: -3 }}
-          className="glass-strong rounded-2xl p-4"
-        >
-          <div className="text-xs text-foreground/60 uppercase font-semibold">Entradas Totais</div>
-          <div className="text-2xl font-extrabold text-emerald-brand mt-1">{brl(entradas)}</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.06 }}
-          whileHover={{ y: -3 }}
-          className="glass-strong rounded-2xl p-4"
-        >
-          <div className="text-xs text-foreground/60 uppercase font-semibold">Saídas Totais</div>
-          <div className="text-2xl font-extrabold text-destructive mt-1">{brl(saidas)}</div>
-        </motion.div>
-      </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-black/5 p-2 rounded-2xl border border-glass-border">
         <div className="flex items-center w-full md:w-auto gap-1 bg-black/5 p-1 rounded-xl overflow-x-auto">
@@ -172,7 +155,7 @@ function Movimentacao() {
               <div className={`font-extrabold text-lg shrink-0 ${r.tipo === "entrada" ? "text-emerald-brand" : "text-destructive"}`}>
                 {r.tipo === "entrada" ? "+" : "−"}{brl(r.valor)}
               </div>
-              <button onClick={() => remove(r)} className="text-foreground/30 hover:text-destructive p-2 rounded-lg hover:bg-destructive/10 transition-colors shrink-0">
+              <button onClick={() => remove(r)} title="Estornar" className="text-foreground/30 hover:text-destructive p-2 rounded-lg hover:bg-destructive/10 transition-colors shrink-0">
                 <Trash2 className="h-5 w-5" />
               </button>
             </motion.div>

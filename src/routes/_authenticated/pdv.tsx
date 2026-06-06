@@ -28,6 +28,10 @@ function PDV() {
   const [modalOpen, setModalOpen] = useState(false);
   const [pedidoNome, setPedidoNome] = useState("");
   const [pedidoValor, setPedidoValor] = useState("");
+  
+  // Pagamento Dividido
+  const [valorPagoAVista, setValorPagoAVista] = useState("");
+  const [metodoPagoAVista, setMetodoPagoAVista] = useState<"pix" | "cartao" | "dinheiro">("pix");
 
   const [recentSales, setRecentSales] = useState<Venda[]>([]);
 
@@ -65,6 +69,12 @@ function PDV() {
     if (!valorNum || valorNum <= 0) return toast.error("Informe um valor válido");
     if (pgto === "fiado" && !clienteSel) return toast.error("Selecione um cliente para o fiado");
     
+    let aVistaNum = 0;
+    if (pgto === "fiado" && valorPagoAVista) {
+      aVistaNum = parseFloat(valorPagoAVista.replace(",", "."));
+      if (aVistaNum > valorNum) return toast.error("Valor pago não pode ser maior que o valor total");
+    }
+    
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -78,16 +88,24 @@ function PDV() {
       if (e1) throw e1;
 
       if (isFiado) {
-        const { error: e2 } = await supabase.from("fiados_registros").insert({
+        const { data: fiado, error: e2 } = await supabase.from("fiados_registros").insert({
           user_id: userId, cliente_id: clienteSel!.id, venda_id: venda.id,
-          descricao: pedidoNome.trim(), valor_total: valorNum,
-        });
+          descricao: pedidoNome.trim(), valor_total: valorNum, status: "aberto"
+        }).select().single();
         if (e2) throw e2;
+
+        if (aVistaNum > 0) {
+          const { error: e3 } = await supabase.from("fiados_pagamentos").insert({
+            user_id: userId, fiado_id: fiado.id, valor: aVistaNum
+          });
+          if (e3) throw e3;
+        }
       }
       toast.success(`Venda de ${brl(valorNum)} registrada!`);
       
       // Reset form
       setPedidoNome(""); setPedidoValor(""); setClienteSel(null); setPgto("pix");
+      setValorPagoAVista(""); setMetodoPagoAVista("pix");
       setModalOpen(false);
       loadRecentSales();
       window.dispatchEvent(new CustomEvent("data:changed"));
@@ -95,6 +113,10 @@ function PDV() {
       toast.error(e.message);
     } finally { setSaving(false); }
   };
+
+  const valorNumTemp = parseFloat(pedidoValor.replace(",", ".")) || 0;
+  const aVistaNumTemp = parseFloat(valorPagoAVista.replace(",", ".")) || 0;
+  const restanteFiado = valorNumTemp - aVistaNumTemp;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -147,7 +169,7 @@ function PDV() {
               exit={{ y: 80, opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative"
+              className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-5 relative max-h-[90vh] overflow-y-auto"
             >
               <button onClick={() => setModalOpen(false)} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
               
@@ -159,7 +181,7 @@ function PDV() {
                   <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} placeholder="Ex: Combo 1" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none text-foreground" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor</label>
+                  <label className="text-xs font-semibold text-foreground/60 ml-1 uppercase">Valor Total</label>
                   <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-4 py-3 rounded-xl bg-input border border-glass-border focus:ring-2 focus:ring-ring focus:outline-none font-bold text-lg text-foreground" />
                 </div>
               </div>
@@ -187,7 +209,31 @@ function PDV() {
               </div>
 
               {pgto === "fiado" && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-2">
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4">
+                  {/* Pagamento Dividido */}
+                  <div className="glass rounded-xl p-4 space-y-3">
+                    <div className="text-xs font-semibold text-foreground uppercase tracking-wider">Pagamento Dividido (Opcional)</div>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-xs text-foreground/60 ml-1">Valor pago agora</label>
+                        <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
+                      </div>
+                      <div className="flex-1">
+                        <label className="text-xs text-foreground/60 ml-1">Método</label>
+                        <select value={metodoPagoAVista} onChange={(e) => setMetodoPagoAVista(e.target.value as any)} className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground appearance-none">
+                          <option value="pix">Pix</option>
+                          <option value="dinheiro">Dinheiro</option>
+                          <option value="cartao">Cartão</option>
+                        </select>
+                      </div>
+                    </div>
+                    {aVistaNumTemp > 0 && restanteFiado > 0 && (
+                      <div className="text-xs text-foreground/70 bg-black/10 p-2 rounded-lg text-center">
+                        Restante fiado: <strong className="text-fiado-foreground">{brl(restanteFiado)}</strong>
+                      </div>
+                    )}
+                  </div>
+
                   {clienteSel ? (
                     <div className="glass rounded-xl p-3 flex items-center justify-between">
                       <div>
@@ -250,4 +296,3 @@ function PDV() {
     </div>
   );
 }
-

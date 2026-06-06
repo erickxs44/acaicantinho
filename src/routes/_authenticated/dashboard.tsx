@@ -25,8 +25,30 @@ function Dashboard() {
   const [dateFrom, setDateFrom] = useState(dataPadraoInicio.toISOString().slice(0, 10));
   const [dateTo, setDateTo] = useState(dataPadraoFim.toISOString().slice(0, 10));
 
+  const setRange = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    if (days > 0) start.setDate(start.getDate() - days);
+    else if (days === 0) {
+      // Hoje
+    }
+    setDateFrom(start.toISOString().slice(0, 10));
+    setDateTo(end.toISOString().slice(0, 10));
+  }
+  
+  const setMesPassado = () => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const end = new Date(now.getFullYear(), now.getMonth(), 0);
+    setDateFrom(start.toISOString().slice(0, 10));
+    setDateTo(end.toISOString().slice(0, 10));
+  }
+
   useEffect(() => {
     load();
+    const handler = () => load();
+    window.addEventListener("data:changed", handler);
+    return () => window.removeEventListener("data:changed", handler);
   }, [dateFrom, dateTo]);
 
   async function load() {
@@ -38,7 +60,7 @@ function Dashboard() {
     const [vendasRes, despesasRes, fiadosRes, pagamentosRes] = await Promise.all([
       supabase.from("vendas").select("valor,is_fiado,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("despesas").select("valor,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
-      supabase.from("fiados_registros").select("valor_total,valor_pago,status"),
+      supabase.from("fiados_registros").select("valor_total,valor_pago,status,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("fiados_pagamentos").select("valor,created_at").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
     ]);
 
@@ -53,9 +75,7 @@ function Dashboard() {
 
     const despesasTotal = despesas.reduce((s, d) => s + Number(d.valor), 0);
 
-    // Saldo em aberto geral independe da data para mostrar total de devedores, 
-    // mas se o usuário quiser ver só a divida gerada no período, podemos filtrar. 
-    // Como fiado em aberto geralmente significa o risco total do negócio, manteremos global.
+    // Saldo em aberto gerado apenas no período filtrado
     const fiadosAberto = fiados
       .filter((f) => f.status === "aberto")
       .reduce((s, f) => s + (Number(f.valor_total) - Number(f.valor_pago)), 0);
@@ -68,7 +88,7 @@ function Dashboard() {
     // Limite de 30 pontos no gráfico para não bugar a UI
     const totalDays = Math.min(diffDays, 30);
     
-    for (let i = totalDays - 1; i >= 0; i--) {
+    for (let i = totalDays; i >= 0; i--) {
       const d = new Date(toDate); 
       d.setDate(d.getDate() - i); 
       d.setHours(0, 0, 0, 0);
@@ -98,29 +118,41 @@ function Dashboard() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-extrabold">
-            Olá, <span className="text-gradient">Cantinho</span> 👋
-          </motion.h1>
-          <p className="text-foreground/60 mt-1">Resumo do período selecionado</p>
-        </div>
+      <header className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <motion.h1 initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-4xl font-extrabold">
+              Olá, <span className="text-gradient">Cantinho</span> 👋
+            </motion.h1>
+            <p className="text-foreground/60 mt-1">Resumo do período selecionado</p>
+          </div>
 
-        <div className="flex items-center gap-2 glass-strong p-2 rounded-xl">
-          <CalendarIcon className="h-5 w-5 text-foreground/50 ml-2" />
-          <input 
-            type="date" 
-            value={dateFrom} 
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="bg-transparent border-none text-sm text-foreground focus:ring-0 w-[120px]"
-          />
-          <span className="text-foreground/40">até</span>
-          <input 
-            type="date" 
-            value={dateTo} 
-            onChange={(e) => setDateTo(e.target.value)}
-            className="bg-transparent border-none text-sm text-foreground focus:ring-0 w-[120px]"
-          />
+          <div className="flex items-center gap-2 gradient-primary p-2 rounded-xl text-white shadow-lg glow">
+            <CalendarIcon className="h-5 w-5 ml-2 opacity-80" />
+            <input 
+              type="date" 
+              value={dateFrom} 
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="bg-transparent border-none text-sm font-semibold focus:ring-0 w-[120px] text-white [&::-webkit-calendar-picker-indicator]:invert"
+            />
+            <span className="opacity-60 text-sm">até</span>
+            <input 
+              type="date" 
+              value={dateTo} 
+              onChange={(e) => setDateTo(e.target.value)}
+              className="bg-transparent border-none text-sm font-semibold focus:ring-0 w-[120px] text-white [&::-webkit-calendar-picker-indicator]:invert"
+            />
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterBtn label="Hoje" onClick={() => setRange(0)} />
+          <FilterBtn label="7 dias" onClick={() => setRange(6)} />
+          <FilterBtn label="30 dias" onClick={() => setRange(29)} />
+          <FilterBtn label="Mês passado" onClick={setMesPassado} />
+          <FilterBtn label="3 meses" onClick={() => setRange(90)} />
+          <FilterBtn label="6 meses" onClick={() => setRange(180)} />
+          <FilterBtn label="1 ano" onClick={() => setRange(365)} />
         </div>
       </header>
 
@@ -128,7 +160,7 @@ function Dashboard() {
         <KpiCard idx={0} label="Vendas" value={brl(stats.vendas)} icon={<TrendingUp />} bg="bg-card" fg="text-sales-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
         <KpiCard idx={1} label="Despesas" value={brl(stats.despesas)} icon={<TrendingDown />} bg="bg-card" fg="text-expense-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
         <KpiCard idx={2} label="Lucro" value={brl(stats.lucro)} icon={<Wallet />} bg="bg-card" fg="text-profit-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
-        <KpiCard idx={3} label="Fiados (Geral)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-card" fg="text-fiado-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
+        <KpiCard idx={3} label="Fiados (Período)" value={brl(stats.fiados)} icon={<ReceiptText />} bg="bg-card" fg="text-fiado-foreground" border="border-primary/30 shadow-[var(--shadow-glow)]" loading={loading} />
       </div>
 
       <motion.div
@@ -164,6 +196,17 @@ function Dashboard() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+function FilterBtn({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="px-3 py-1.5 text-xs font-semibold rounded-lg glass text-foreground hover:bg-white/10 transition"
+    >
+      {label}
+    </button>
   );
 }
 

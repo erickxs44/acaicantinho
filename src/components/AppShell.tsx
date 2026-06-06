@@ -1,6 +1,6 @@
 import { Link, Outlet, useRouter, useLocation } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, ShoppingCart, ArrowLeftRight, ReceiptText, LogOut, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, ArrowDownRight, ArrowLeftRight, ReceiptText, LogOut, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Fab } from "./Fab";
@@ -8,6 +8,7 @@ import { Fab } from "./Fab";
 const nav = [
   { to: "/dashboard", icon: LayoutDashboard, label: "Início" },
   { to: "/pdv", icon: ShoppingCart, label: "PDV" },
+  { to: "/pdg", icon: ArrowDownRight, label: "PDG" },
   { to: "/movimentacao", icon: ArrowLeftRight, label: "Caixa" },
   { to: "/fiados", icon: ReceiptText, label: "Fiados" },
   { to: "/configuracoes", icon: Settings, label: "Config" },
@@ -99,14 +100,14 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-strong border-t border-primary/10 p-2 grid grid-cols-5 gap-1">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 glass-strong border-t border-primary/10 p-2 grid grid-cols-6 gap-1">
         {nav.map(({ to, icon: Icon, label }) => {
           const active = pathname.startsWith(to);
           return (
             <Link
               key={to}
               to={to}
-              className="relative flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-semibold"
+              className="relative flex flex-col items-center gap-1 py-2 rounded-xl text-[9px] font-semibold"
             >
               {active && (
                 <motion.div
