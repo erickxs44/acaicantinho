@@ -30,7 +30,9 @@ export function AppShell() {
           initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
           className="glass-strong rounded-2xl p-4 flex items-center gap-3 border border-primary/20"
         >
-          <div className="h-10 w-10 rounded-xl gradient-primary glow flex items-center justify-center text-xl">🍇</div>
+          <div className="h-10 w-10 rounded-xl overflow-hidden flex items-center justify-center bg-white">
+            <img src="/logo.png" alt="Cantinho do Açaí" className="h-10 w-10 object-contain" />
+          </div>
           <div>
             <div className="text-sm font-bold text-foreground leading-tight">Cantinho</div>
             <div className="text-xs text-foreground/60 leading-tight">do Açaí</div>
@@ -75,7 +77,9 @@ export function AppShell() {
 
       <div className="md:hidden fixed top-0 left-0 right-0 z-30 glass-strong border-b border-primary/10 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg gradient-primary flex items-center justify-center">🍇</div>
+          <div className="h-8 w-8 rounded-lg overflow-hidden bg-white flex items-center justify-center">
+            <img src="/logo.png" alt="Cantinho do Açaí" className="h-8 w-8 object-contain" />
+          </div>
           <div className="text-sm font-bold text-foreground">Cantinho do Açaí</div>
         </div>
         <button onClick={logout} className="text-foreground/70 hover:text-foreground"><LogOut className="h-4 w-4" /></button>
