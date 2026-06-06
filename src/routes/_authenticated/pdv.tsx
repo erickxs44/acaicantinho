@@ -90,7 +90,8 @@ function PDV() {
       if (isFiado) {
         const { data: fiado, error: e2 } = await supabase.from("fiados_registros").insert({
           user_id: userId, cliente_id: clienteSel!.id, venda_id: venda.id,
-          descricao: pedidoNome.trim(), valor_total: valorNum, status: "aberto"
+          descricao: pedidoNome.trim(), valor_total: valorNum, 
+          valor_pago: aVistaNum, status: aVistaNum >= valorNum ? "pago" : "aberto"
         }).select().single();
         if (e2) throw e2;
 
