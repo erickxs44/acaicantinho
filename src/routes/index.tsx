@@ -19,9 +19,15 @@ function Splash() {
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      const { data } = await supabase.auth.getSession();
-      navigate({ to: data.session ? "/dashboard" : "/auth", replace: true });
-      setShow(false);
+      try {
+        const { data } = await supabase.auth.getSession();
+        navigate({ to: data.session ? "/dashboard" : "/auth", replace: true });
+      } catch (err) {
+        console.error("Erro ao verificar sessão:", err);
+        navigate({ to: "/auth", replace: true });
+      } finally {
+        setShow(false);
+      }
     }, 1800);
     return () => clearTimeout(t);
   }, [navigate]);
