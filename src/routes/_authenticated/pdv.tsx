@@ -180,33 +180,33 @@ function PDV() {
         {modalOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
             onClick={() => setModalOpen(false)}
           >
             <motion.div
-              initial={{ y: 80, opacity: 0, scale: 0.95 }}
+              initial={{ y: 20, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 80, opacity: 0, scale: 0.95 }}
+              exit={{ y: 20, opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 background: "var(--purple-800)", border: "1px solid var(--white-10)",
-                borderRadius: 24, padding: 28, width: "100%", maxWidth: 440,
-                position: "relative", maxHeight: "90vh", overflowY: "auto",
-                display: "flex", flexDirection: "column", gap: 18,
+                borderRadius: 20, padding: 20, width: "100%", maxWidth: 380,
+                position: "relative", maxHeight: "85vh", overflowY: "auto",
+                display: "flex", flexDirection: "column", gap: 14,
               }}
             >
-              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
+              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
               
-              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "white", margin: 0 }}>Nova Venda</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, color: "white", margin: 0 }}>Nova Venda</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Pedido / Produto</label>
-                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Combo 1" className="input-base" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Pedido / Produto</label>
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Combo 1" className="input-base" style={{ padding: "10px 14px", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
-                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Valor Total</label>
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ padding: "10px 14px", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }} />
                 </div>
               </div>
 
@@ -224,8 +224,8 @@ function PDV() {
                       onClick={() => setPgto(o.v)}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                        padding: "12px 4px", borderRadius: 12,
-                        fontFamily: "var(--font-sans)", fontSize: 11, fontWeight: 600,
+                        padding: "10px 4px", borderRadius: 10,
+                        fontFamily: "var(--font-sans)", fontSize: 10, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.2s",
                         background: pgto === o.v ? "linear-gradient(135deg, #5a2d9c, #7c3aed)" : "var(--white-5)",
                         color: pgto === o.v ? "white" : "var(--white-70)",
@@ -318,7 +318,7 @@ function PDV() {
                 onClick={finalizar}
                 disabled={saving}
                 className="btn-primary"
-                style={{ width: "100%", padding: "14px 0", fontSize: 15, borderRadius: 12, opacity: saving ? 0.5 : 1 }}
+                style={{ width: "100%", padding: "12px 0", fontSize: 14, borderRadius: 10, opacity: saving ? 0.5 : 1 }}
               >
                 {saving ? "Salvando..." : "Confirmar Venda"}
               </button>

@@ -5,14 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl, dateBR } from "@/lib/format";
 import { saveState, loadState } from "@/lib/offline-storage";
 import { toast } from "sonner";
-import { ArrowDownLeft, ArrowUpRight, Search, Trash2, Filter, X } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Search, Trash2, Filter, X, ReceiptText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/movimentacao")({
   head: () => ({ meta: [{ title: "Movimentações — Cantinho do Açaí" }] }),
   component: Movimentacao,
 });
 
-type Row = { id: string; tipo: "entrada" | "saida"; descricao: string; valor: number; created_at: string; table: string; fiado_id?: string; };
+type Row = { id: string; tipo: "entrada" | "saida"; descricao: string; valor: number; created_at: string; table: string; fiado_id?: string; is_fiado?: boolean; };
 type Tab = "todos" | "entradas" | "saidas" | "fiados";
 
 function Movimentacao() {
@@ -34,7 +34,7 @@ function Movimentacao() {
       ...(v.data ?? []).map((x) => ({
         id: x.id, tipo: "entrada" as const,
         descricao: x.is_fiado ? `Fiado: ${x.produto}` : `${x.produto} (${x.tipo_pagamento})`,
-        valor: Number(x.valor), created_at: x.created_at, table: "vendas",
+        valor: Number(x.valor), created_at: x.created_at, table: "vendas", is_fiado: x.is_fiado
       })),
       ...(p.data ?? []).map((x) => ({ id: x.id, tipo: "entrada" as const, descricao: "Pagamento de fiado", valor: Number(x.valor), created_at: x.created_at, table: "fiados_pagamentos", fiado_id: x.fiado_id })),
       ...(d.data ?? []).map((x) => ({ id: x.id, tipo: "saida" as const, descricao: x.descricao, valor: Number(x.valor), created_at: x.created_at, table: "despesas" })),
@@ -178,15 +178,15 @@ function Movimentacao() {
                 dragElastic={0.1}
                 className="glass rounded-xl p-3 flex items-center gap-4 bg-background hover:bg-black/5 transition-colors relative z-10 w-full"
               >
-                <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${r.tipo === "entrada" ? "bg-emerald-brand/10 text-emerald-brand" : "bg-destructive/10 text-destructive"}`}>
-                  {r.tipo === "entrada" ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
+                <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${r.is_fiado ? "bg-fiado/10 text-fiado-foreground" : r.tipo === "entrada" ? "bg-emerald-brand/10 text-emerald-brand" : "bg-destructive/10 text-destructive"}`}>
+                  {r.is_fiado ? <ReceiptText className="h-5 w-5" /> : r.tipo === "entrada" ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate text-base text-foreground">{r.descricao}</div>
                   <div className="text-xs text-foreground/50">{dateBR(r.created_at)}</div>
                 </div>
-                <div className={`font-extrabold text-lg shrink-0 ${r.tipo === "entrada" ? "text-emerald-brand" : "text-destructive"}`}>
-                  {r.tipo === "entrada" ? "+" : "−"}{brl(r.valor)}
+                <div className={`font-extrabold text-lg shrink-0 ${r.is_fiado ? "text-fiado-foreground" : r.tipo === "entrada" ? "text-emerald-brand" : "text-destructive"}`}>
+                  {r.is_fiado ? "" : (r.tipo === "entrada" ? "+" : "−")}{brl(r.valor)}
                 </div>
                 {/* Desktop Delete button (hidden on touch devices due to swipe, but shown for mouse if they don't drag) */}
                 <button onClick={() => setRowToDelete(r)} title="Estornar" className="hidden md:block text-foreground/30 hover:text-destructive p-2 rounded-lg hover:bg-destructive/10 transition-colors shrink-0">

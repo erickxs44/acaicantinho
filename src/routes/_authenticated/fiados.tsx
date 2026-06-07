@@ -227,17 +227,17 @@ function Fiados() {
           <motion.div
             key={g.cli.id}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-            className="glass-strong rounded-2xl p-4 flex flex-col items-start hover:bg-white/5 transition-colors gap-4"
+            className="glass-strong rounded-2xl p-3 md:p-4 flex flex-col items-start hover:bg-white/5 transition-colors gap-3 md:gap-4"
           >
             {/* Header do Card */}
             <div className="flex w-full justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-xl gradient-primary glow flex items-center justify-center font-bold text-lg text-white">
+              <div className="flex items-center gap-2 md:gap-3">
+                <div className="h-9 w-9 md:h-11 md:w-11 rounded-xl gradient-primary glow flex items-center justify-center font-bold text-base md:text-lg text-white">
                   {g.cli.nome[0].toUpperCase()}
                 </div>
                 <div>
-                  <div className="font-bold truncate text-lg text-foreground">{g.cli.nome}</div>
-                  {g.cli.telefone && <div className="text-xs text-foreground/50">{g.cli.telefone}</div>}
+                  <div className="font-bold truncate text-base md:text-lg text-foreground">{g.cli.nome}</div>
+                  {g.cli.telefone && <div className="text-[10px] md:text-xs text-foreground/50">{g.cli.telefone}</div>}
                 </div>
               </div>
               <button
@@ -250,10 +250,10 @@ function Fiados() {
             </div>
 
             {/* Status e Ações do Card */}
-            <div className="flex w-full flex-col md:flex-row items-start md:items-center justify-between gap-4 border-t border-glass-border pt-4">
+            <div className="flex w-full flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4 border-t border-glass-border pt-3 md:pt-4">
               <div>
                 <div className="text-[10px] text-foreground/40 uppercase font-bold mb-1">Saldo Devedor Atual</div>
-                <div className={`font-extrabold text-2xl leading-none ${g.emAberto > 0 ? "text-fiado-foreground" : "text-emerald-brand"}`}>
+                <div className={`font-extrabold text-xl md:text-2xl leading-none ${g.emAberto > 0 ? "text-fiado-foreground" : "text-emerald-brand"}`}>
                   {g.emAberto > 0 ? brl(g.emAberto) : "Quitado"}
                 </div>
               </div>
@@ -261,20 +261,20 @@ function Fiados() {
               <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
                 <button
                   onClick={() => setReportOpen(g.cli.id)}
-                  className="px-4 py-2.5 rounded-xl glass hover:bg-black/5 text-foreground text-sm font-semibold flex items-center gap-2 transition flex-1 md:flex-auto justify-center"
+                  className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl glass hover:bg-black/5 text-foreground text-xs md:text-sm font-semibold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
                 >
                   <FileText className="h-4 w-4" /> Relatório
                 </button>
                 <button
                   onClick={() => setNewDebtOpen({ cli: g.cli })}
-                  className="px-4 py-2.5 rounded-xl border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-sm font-bold flex items-center gap-2 transition flex-1 md:flex-auto justify-center"
+                  className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-xs md:text-sm font-bold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
                 >
                   <Plus className="h-4 w-4" /> Dívida
                 </button>
                 {g.emAberto > 0 && (
                   <button
                     onClick={() => { setPayOpen({ cli: g.cli, total: g.emAberto }); setPayAmount(g.emAberto.toFixed(2)); }}
-                    className="px-4 py-2.5 rounded-xl bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-sm font-bold flex items-center gap-2 transition flex-1 md:flex-auto justify-center"
+                    className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-xs md:text-sm font-bold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
                   >
                     <CheckCircle2 className="h-4 w-4" /> Pagar
                   </button>
@@ -411,16 +411,16 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
-        initial={{ y: 80, opacity: 0, scale: 0.95 }}
+        initial={{ y: 20, opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 80, opacity: 0, scale: 0.95 }}
+        exit={{ y: 20, opacity: 0, scale: 0.95 }}
         transition={{ type: "spring", stiffness: 260, damping: 24 }}
         onClick={(e) => e.stopPropagation()}
-        className="glass-strong rounded-3xl p-6 w-full max-w-md space-y-4 relative"
+        className="glass-strong rounded-3xl p-5 md:p-6 w-full max-w-sm relative"
       >
         <button onClick={onClose} className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"><X className="h-5 w-5" /></button>
         {children}

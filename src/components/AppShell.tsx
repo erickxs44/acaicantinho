@@ -60,7 +60,7 @@ const nav = [
   { to: "/dashboard", icon: IconDashboard, label: "Início" },
   { to: "/pdv",       icon: IconPDV,       label: "PDV" },
   { to: "/pdg",       icon: IconPDG,       label: "PDG" },
-  { to: "/movimentacao", icon: IconMovimentacao, label: "Caixa" },
+  { to: "/movimentacao", icon: IconMovimentacao, label: "Movimentações" },
   { to: "/fiados",    icon: IconFiados,    label: "Fiados" },
 ] as const;
 

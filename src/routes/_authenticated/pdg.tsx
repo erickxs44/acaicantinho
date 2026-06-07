@@ -125,38 +125,38 @@ function PDG() {
         {modalOpen && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
+            style={{ position: "fixed", inset: 0, zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
             onClick={() => setModalOpen(false)}
           >
             <motion.div
-              initial={{ y: 80, opacity: 0, scale: 0.95 }}
+              initial={{ y: 20, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 80, opacity: 0, scale: 0.95 }}
+              exit={{ y: 20, opacity: 0, scale: 0.95 }}
               transition={{ type: "spring", stiffness: 260, damping: 24 }}
               onClick={(e) => e.stopPropagation()}
               style={{
                 background: "var(--purple-800)", border: "1px solid var(--white-10)",
-                borderRadius: 24, padding: 28, width: "100%", maxWidth: 440,
+                borderRadius: 20, padding: 20, width: "100%", maxWidth: 380,
                 position: "relative",
               }}
             >
-              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
-              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 22, color: "white", marginBottom: 20 }}>Nova Despesa</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, color: "white", marginBottom: 16 }}>Nova Despesa</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Descrição</label>
-                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Conta de luz" className="input-base" />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Descrição</label>
+                  <input value={descricao} onChange={(e) => setDescricao(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Conta de luz" className="input-base" style={{ padding: "10px 14px", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Valor Total</label>
-                  <input value={valor} onChange={(e) => setValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20 }} />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Valor Total</label>
+                  <input value={valor} onChange={(e) => setValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ padding: "10px 14px", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }} />
                 </div>
               </div>
               <button
                 onClick={finalizar}
                 disabled={saving}
                 className="btn-destructive"
-                style={{ width: "100%", padding: "14px 0", fontSize: 15, marginTop: 20, borderRadius: 12 }}
+                style={{ width: "100%", padding: "12px 0", fontSize: 14, marginTop: 16, borderRadius: 10 }}
               >
                 {saving ? "Salvando..." : "Confirmar Despesa"}
               </button>
