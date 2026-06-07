@@ -86,14 +86,12 @@ export function AppShell() {
         height: "100vh",
         background: "var(--purple-900)",
         borderRight: "1px solid var(--white-10)",
-        display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         padding: "24px 0",
         gap: 8,
         zIndex: 50,
       }}
-        className="hidden md:flex"
+        className="hidden md:flex flex-col"
       >
         {/* Logo */}
         <div style={{
@@ -229,7 +227,7 @@ export function AppShell() {
 
       {/* ── MOBILE HEADER ─────────────────────────────────────────── */}
       <div
-        className="md:hidden"
+        className="flex md:hidden"
         style={{
           position: "fixed",
           top: 0,
@@ -239,7 +237,6 @@ export function AppShell() {
           background: "var(--purple-900)",
           borderBottom: "1px solid var(--white-10)",
           padding: "calc(12px + env(safe-area-inset-top)) 16px 12px",
-          display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
         }}
@@ -312,7 +309,7 @@ export function AppShell() {
 
       {/* ── MOBILE BOTTOM NAV ─────────────────────────────────────── */}
       <nav
-        className="md:hidden"
+        className="flex md:hidden"
         style={{
           position: "fixed",
           bottom: 0,
@@ -321,7 +318,6 @@ export function AppShell() {
           zIndex: 30,
           background: "var(--purple-900)",
           borderTop: "1px solid var(--white-10)",
-          display: "flex",
           alignItems: "center",
           justifyContent: "space-around",
           padding: "8px 0 calc(12px + env(safe-area-inset-bottom))",

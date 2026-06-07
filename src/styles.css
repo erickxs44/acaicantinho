@@ -284,12 +284,18 @@ body::after {
   .kpi-card {
     background: var(--white-5);
     border: 1px solid var(--white-10);
-    border-radius: 20px;
-    padding: 24px;
+    border-radius: 16px;
+    padding: 16px;
     position: relative;
     overflow: hidden;
     backdrop-filter: blur(10px);
     transition: all 0.3s ease;
+  }
+  @media (min-width: 768px) {
+    .kpi-card {
+      padding: 24px;
+      border-radius: 20px;
+    }
   }
   .kpi-card:hover {
     border-color: var(--white-30);
@@ -300,9 +306,15 @@ body::after {
   .panel {
     background: var(--white-5);
     border: 1px solid var(--white-10);
-    border-radius: 20px;
+    border-radius: 16px;
     backdrop-filter: blur(10px);
-    padding: 28px;
+    padding: 16px;
+  }
+  @media (min-width: 768px) {
+    .panel {
+      padding: 28px;
+      border-radius: 20px;
+    }
   }
 
   /* Primary Button */

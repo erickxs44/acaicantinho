@@ -320,17 +320,14 @@ function Dashboard() {
 
       {/* ── KPI CARDS ─────────────────────────────────────────────── */}
       <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(4, 1fr)",
         gap: 16,
         marginBottom: 28,
-      }} className="grid-cols-2 md:grid-cols-4">
+      }} className="grid grid-cols-2 md:grid-cols-4">
 
         <KpiCard
           idx={0} loading={loading}
           label="Vendas" value={stats.vendas}
           color="#22d3a5" orbBg="rgba(34,211,165,0.12)"
-          info="Entradas à vista + pagamentos"
           progress={72}
           iconBg="rgba(34,211,165,0.15)"
           icon={
@@ -341,7 +338,6 @@ function Dashboard() {
           idx={1} loading={loading}
           label="Despesas" value={stats.despesas}
           color="#f4617b" orbBg="rgba(244,97,123,0.12)"
-          info="Total de gastos registrados"
           progress={45}
           iconBg="rgba(244,97,123,0.15)"
           icon={
@@ -352,7 +348,6 @@ function Dashboard() {
           idx={2} loading={loading}
           label="Fiados" value={stats.fiados}
           color="#fbbf24" orbBg="rgba(251,191,36,0.12)"
-          info="Saldo em aberto no período"
           progress={30}
           iconBg="rgba(251,191,36,0.15)"
           icon={
@@ -363,7 +358,6 @@ function Dashboard() {
           idx={3} loading={loading}
           label="Lucro" value={stats.lucro}
           color="#b97ef8" orbBg="rgba(185,126,248,0.12)"
-          info="Vendas − Despesas"
           progress={58}
           iconBg="rgba(185,126,248,0.15)"
           icon={
@@ -508,7 +502,7 @@ function Dashboard() {
       </div>
 
       {/* ── BOTTOM GRID ───────────────────────────────────────────── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }} className="grid-cols-1 md:grid-cols-2">
+      <div style={{ gap: 16 }} className="grid grid-cols-1 md:grid-cols-2">
 
         {/* Movimentações Recentes */}
         <div className="panel">
@@ -658,12 +652,12 @@ function Dashboard() {
 
 // ── KPI Card Component ─────────────────────────────────────────────────────
 function KpiCard({
-  idx, loading, label, value, color, orbBg, info, progress, iconBg, icon
+  idx, loading, label, value, color, orbBg, progress, iconBg, icon
 }: {
   idx: number; loading: boolean;
   label: string; value: number;
   color: string; orbBg: string;
-  info: string; progress: number;
+  progress: number;
   iconBg: string; icon: React.ReactNode;
 }) {
   const formatted = brl(value);
@@ -722,21 +716,6 @@ function KpiCard({
         )}
       </div>
 
-      {/* Info */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 4,
-        fontSize: 12,
-        color,
-        fontFamily: "var(--font-sans)",
-      }}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-          <polyline points="18 15 12 9 6 15" />
-        </svg>
-        {info}
-      </div>
-
       {/* Progress bar */}
       <div className="progress-bar">
         <div className="progress-fill" style={{ width: `${progress}%`, background: color }} />
@@ -745,10 +724,10 @@ function KpiCard({
       {/* Icon bottom-right */}
       <div style={{
         position: "absolute",
-        bottom: 20,
-        right: 20,
-        width: 36,
-        height: 36,
+        bottom: 16,
+        right: 16,
+        width: 32,
+        height: 32,
         borderRadius: 10,
         background: iconBg,
         display: "flex",
