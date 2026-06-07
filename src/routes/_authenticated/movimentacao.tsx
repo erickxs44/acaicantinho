@@ -223,7 +223,7 @@ function Movimentacao() {
                 </div>
                 <h3 className="text-xl font-bold text-foreground">Remover Movimentação</h3>
                 <p className="text-sm text-foreground/60">
-                  Você deseja remover essa movimentação? O estorno afetará os relatórios e os saldos da Dashboard em cascata.
+                  Você deseja remover essa movimentação?
                 </p>
                 <div className="bg-black/20 p-3 rounded-xl w-full mt-2 text-left flex items-center justify-between border border-glass-border">
                   <span className="text-sm font-semibold text-foreground/80 truncate pr-2">{rowToDelete.descricao}</span>
@@ -235,10 +235,10 @@ function Movimentacao() {
 
               <div className="flex gap-2 pt-4">
                 <button onClick={remove} className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-bold hover:brightness-110 transition shadow-lg">
-                  Sim, remover
+                  Sim
                 </button>
                 <button onClick={() => setRowToDelete(null)} className="flex-1 py-3 rounded-xl glass text-foreground font-bold hover:bg-black/10 transition">
-                  Não, cancelar
+                  Não
                 </button>
               </div>
             </motion.div>

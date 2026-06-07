@@ -25,12 +25,11 @@ type ClienteFiado = { nome: string; telefone: string | null; emAberto: number; q
 
 const PERIODS = [
   { label: "Hoje", days: 0 },
-  { label: "7d",   days: 6 },
-  { label: "30d",  days: 29 },
-  { label: "Mês",  days: -1 },  // mês atual
-  { label: "3m",   days: 90 },
-  { label: "6m",   days: 180 },
-  { label: "1a",   days: 365 },
+  { label: "Últimos 7 dias", days: 6 },
+  { label: "Últimos 30 dias", days: 29 },
+  { label: "Últimos 3 meses", days: 90 },
+  { label: "Últimos 6 meses", days: 180 },
+  { label: "Último ano", days: 365 },
 ];
 
 function formatDateRange(from: string, to: string) {
@@ -180,9 +179,7 @@ function Dashboard() {
     setRecentMovs(allMovs);
 
     // Top clients with fiados
-    const allFiadosRes = await supabase
-      .from("fiados_registros").select("valor_total,valor_pago,status,cliente_id").eq("status", "aberto");
-    const allFiados = allFiadosRes.data ?? [];
+    const allFiados = fiados.filter((f) => f.status === "aberto");
 
     const clientMap = new Map<string, ClienteFiado>();
     for (const cli of clientes.filter((c) => !c.nome.startsWith("[EXCLUÍDO]"))) {
@@ -281,41 +278,46 @@ function Dashboard() {
           </p>
         </div>
 
-        {/* Calendar Button */}
-        <button
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: "linear-gradient(135deg, #5a2d9c, #7c3aed)",
-            color: "white",
-            padding: "10px 18px",
-            borderRadius: 12,
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "var(--font-sans)",
-            fontWeight: 500,
-            fontSize: 13,
-            letterSpacing: "0.2px",
-            boxShadow: "0 4px 20px rgba(124,58,237,0.45)",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
-            (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 28px rgba(124,58,237,0.55)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLElement).style.boxShadow = "0 4px 20px rgba(124,58,237,0.45)";
-          }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-          {formatDateRange(dateFrom, dateTo)}
-        </button>
+        {/* Calendar Button com Select Nativo */}
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <button
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              background: "linear-gradient(135deg, #5a2d9c, #7c3aed)",
+              color: "white",
+              padding: "10px 18px",
+              borderRadius: 12,
+              border: "none",
+              fontFamily: "var(--font-sans)",
+              fontWeight: 500,
+              fontSize: 13,
+              letterSpacing: "0.2px",
+              boxShadow: "0 4px 20px rgba(124,58,237,0.45)",
+              transition: "all 0.2s",
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            {formatDateRange(dateFrom, dateTo)}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <select
+            value={activePeriod}
+            onChange={(e) => setPeriod(Number(e.target.value))}
+            style={{
+              position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer",
+            }}
+          >
+            {PERIODS.map((p, i) => (
+              <option key={i} value={i}>{p.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* ── KPI CARDS ─────────────────────────────────────────────── */}
