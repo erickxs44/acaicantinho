@@ -162,38 +162,31 @@ function Movimentacao() {
               <p>Nenhuma movimentação encontrada.</p>
             </motion.div>
           ) : filteredRows.map((r, i) => (
-            <div key={r.id} className="relative overflow-hidden rounded-xl bg-destructive/20 mb-2 border border-destructive/20">
-              <div className="absolute top-0 right-0 bottom-0 w-20 flex items-center justify-center">
-                <button onClick={() => setRowToDelete(r)} className="w-full h-full flex flex-col items-center justify-center text-destructive hover:brightness-125 transition">
-                  <Trash2 className="h-6 w-6" />
-                  <span className="text-[10px] font-bold uppercase mt-1">Estornar</span>
-                </button>
+            <motion.div
+              key={r.id}
+              layout
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: i * 0.025 }}
+              className="glass rounded-xl p-3 flex items-center gap-3 bg-background hover:bg-black/5 transition-colors w-full"
+            >
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${r.is_fiado ? "bg-fiado/10 text-fiado-foreground" : r.tipo === "entrada" ? "bg-emerald-brand/10 text-emerald-brand" : "bg-destructive/10 text-destructive"}`}>
+                {r.is_fiado ? <ReceiptText className="h-5 w-5" /> : r.tipo === "entrada" ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
               </div>
-              <motion.div
-                layout
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: i * 0.025 }}
-                drag="x"
-                dragConstraints={{ left: -80, right: 0 }}
-                dragElastic={0.1}
-                className="glass rounded-xl p-3 flex items-center gap-4 bg-background hover:bg-black/5 transition-colors relative z-10 w-full"
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold truncate text-sm text-foreground">{r.descricao}</div>
+                <div className="text-xs text-foreground/50">{dateBR(r.created_at)}</div>
+              </div>
+              <div className={`font-extrabold text-base shrink-0 ${r.is_fiado ? "text-fiado-foreground" : r.tipo === "entrada" ? "text-emerald-brand" : "text-destructive"}`}>
+                {r.is_fiado ? "" : (r.tipo === "entrada" ? "+" : "−")}{brl(r.valor)}
+              </div>
+              <button
+                onClick={() => setRowToDelete(r)}
+                title="Estornar"
+                className="text-foreground/30 hover:text-destructive p-2 rounded-lg hover:bg-destructive/10 transition-colors shrink-0"
               >
-                <div className={`h-11 w-11 rounded-xl flex items-center justify-center shrink-0 ${r.is_fiado ? "bg-fiado/10 text-fiado-foreground" : r.tipo === "entrada" ? "bg-emerald-brand/10 text-emerald-brand" : "bg-destructive/10 text-destructive"}`}>
-                  {r.is_fiado ? <ReceiptText className="h-5 w-5" /> : r.tipo === "entrada" ? <ArrowDownLeft className="h-5 w-5" /> : <ArrowUpRight className="h-5 w-5" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate text-base text-foreground">{r.descricao}</div>
-                  <div className="text-xs text-foreground/50">{dateBR(r.created_at)}</div>
-                </div>
-                <div className={`font-extrabold text-lg shrink-0 ${r.is_fiado ? "text-fiado-foreground" : r.tipo === "entrada" ? "text-emerald-brand" : "text-destructive"}`}>
-                  {r.is_fiado ? "" : (r.tipo === "entrada" ? "+" : "−")}{brl(r.valor)}
-                </div>
-                {/* Desktop Delete button (hidden on touch devices due to swipe, but shown for mouse if they don't drag) */}
-                <button onClick={() => setRowToDelete(r)} title="Estornar" className="hidden md:block text-foreground/30 hover:text-destructive p-2 rounded-lg hover:bg-destructive/10 transition-colors shrink-0">
-                  <Trash2 className="h-5 w-5" />
-                </button>
-              </motion.div>
-            </div>
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </motion.div>
           ))}
         </AnimatePresence>
       </div>
