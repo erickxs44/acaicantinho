@@ -213,28 +213,28 @@ function PDV() {
               onClick={(e) => e.stopPropagation()}
               style={{
                 background: "var(--purple-800)", border: "1px solid var(--white-10)",
-                borderRadius: 20, padding: 20, width: "100%", maxWidth: 380,
+                borderRadius: 16, padding: 16, width: "100%", maxWidth: 360,
                 position: "relative", maxHeight: "85vh", overflowY: "auto",
-                display: "flex", flexDirection: "column", gap: 14,
+                display: "flex", flexDirection: "column", gap: 12,
               }}
             >
-              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
+              <button onClick={() => setModalOpen(false)} style={{ position: "absolute", top: 12, right: 12, background: "none", border: "none", color: "var(--white-70)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
               
-              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, color: "white", margin: 0 }}>Nova Venda</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "white", margin: 0 }}>Nova Venda</h2>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Pedido / Produto</label>
-                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Combo 1" className="input-base" style={{ padding: "10px 14px", fontSize: 13 }} />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 9, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Pedido / Produto</label>
+                  <input value={pedidoNome} onChange={(e) => setPedidoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Ex: Combo 1" className="input-base" style={{ padding: "8px 12px", fontSize: 13 }} />
                 </div>
                 <div>
-                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Valor Total</label>
-                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ padding: "10px 14px", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18 }} />
+                  <label style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 9, textTransform: "uppercase", letterSpacing: "1px", color: "var(--white-70)", display: "block", marginBottom: 4 }}>Valor Total</label>
+                  <input value={pedidoValor} onChange={(e) => setPedidoValor(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="input-base" style={{ padding: "8px 12px", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16 }} />
                 </div>
               </div>
 
-              <div style={{ borderTop: "1px solid var(--white-10)", paddingTop: 16 }}>
-                <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", marginBottom: 10 }}>Pagamento</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+              <div style={{ borderTop: "1px solid var(--white-10)", paddingTop: 12 }}>
+                <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 10, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", marginBottom: 8 }}>Pagamento</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 4 }}>
                   {([
                     { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
                     { v: "cartao", l: "Cartão", i: <CreditCard className="h-4 w-4" /> },
@@ -246,8 +246,8 @@ function PDV() {
                       key={o.v}
                       onClick={() => setPgto(o.v)}
                       style={{
-                        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                        padding: "10px 2px", borderRadius: 10,
+                        display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
+                        padding: "8px 2px", borderRadius: 8,
                         fontFamily: "var(--font-sans)", fontSize: 10, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.2s",
                         background: pgto === o.v ? "linear-gradient(135deg, #5a2d9c, #7c3aed)" : "var(--white-5)",
@@ -263,18 +263,18 @@ function PDV() {
               </div>
 
               {(pgto === "fiado" || pgto === "dividido") && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4">
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-3">
                   {pgto === "dividido" && (
-                    <div className="glass rounded-xl p-4 space-y-3">
-                      <div className="text-xs font-semibold text-foreground uppercase tracking-wider">Pagamento Dividido</div>
+                    <div className="glass rounded-xl p-3 space-y-2">
+                      <div className="text-[10px] font-semibold text-foreground uppercase tracking-wider">Pagamento Dividido</div>
                       <div className="flex gap-2">
                         <div className="flex-1">
-                          <label className="text-xs text-foreground/60 ml-1">Valor pago agora</label>
-                          <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
+                          <label className="text-[10px] text-foreground/60 ml-1">Valor pago agora</label>
+                          <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-1.5 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
                         </div>
                         <div className="flex-1">
-                          <label className="text-xs text-foreground/60 ml-1">Método</label>
-                          <select value={metodoPagoAVista} onChange={(e) => setMetodoPagoAVista(e.target.value as any)} className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground appearance-none">
+                          <label className="text-[10px] text-foreground/60 ml-1">Método</label>
+                          <select value={metodoPagoAVista} onChange={(e) => setMetodoPagoAVista(e.target.value as any)} className="w-full mt-1 px-3 py-1.5 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground appearance-none">
                             <option value="pix">Pix</option>
                             <option value="dinheiro">Dinheiro</option>
                             <option value="cartao">Cartão</option>
@@ -300,13 +300,13 @@ function PDV() {
                   ) : (
                     <>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/40" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-foreground/40" />
                         <input
                           value={busca}
                           onChange={(e) => setBusca(e.target.value)}
                           onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
                           placeholder="Buscar cliente pelo nome..."
-                          className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                          className="w-full pl-8 pr-3 py-2 rounded-xl bg-input border border-glass-border text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                       </div>
                       
@@ -328,13 +328,13 @@ function PDV() {
                           <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
                           <input value={novoTel} onChange={(e) => setNovoTel(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Telefone (opcional)" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" type="tel" inputMode="tel" />
                           <div className="flex gap-2">
-                            <button onClick={criarCliente} className="flex-1 py-2 rounded-lg gradient-primary text-white text-sm font-semibold">Cadastrar</button>
-                            <button onClick={() => setNovoCliente(false)} className="px-3 py-2 rounded-lg glass text-foreground text-sm">Cancelar</button>
+                            <button onClick={criarCliente} className="flex-1 py-1.5 rounded-lg gradient-primary text-white text-xs font-semibold">Cadastrar</button>
+                            <button onClick={() => setNovoCliente(false)} className="px-3 py-1.5 rounded-lg glass text-foreground text-xs">Cancelar</button>
                           </div>
                         </div>
                       ) : (
-                        <button onClick={() => setNovoCliente(true)} className="w-full py-3 rounded-xl glass text-sm flex items-center justify-center gap-1 text-foreground/70 hover:text-foreground font-semibold">
-                          <Plus className="h-4 w-4" /> Novo cliente
+                        <button onClick={() => setNovoCliente(true)} className="w-full py-2 rounded-xl glass text-xs flex items-center justify-center gap-1 text-foreground/70 hover:text-foreground font-semibold">
+                          <Plus className="h-3.5 w-3.5" /> Novo cliente
                         </button>
                       )}
                     </>
@@ -346,7 +346,7 @@ function PDV() {
                 onClick={finalizar}
                 disabled={saving}
                 className="btn-primary"
-                style={{ width: "100%", padding: "12px 0", fontSize: 14, borderRadius: 10, opacity: saving ? 0.5 : 1 }}
+                style={{ width: "100%", padding: "10px 0", fontSize: 13, borderRadius: 10, opacity: saving ? 0.5 : 1 }}
               >
                 {saving ? "Salvando..." : "Confirmar Venda"}
               </button>
