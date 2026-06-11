@@ -5,14 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl, dateBR } from "@/lib/format";
 import { saveState, loadState } from "@/lib/offline-storage";
 import { toast } from "sonner";
-import { Plus, X, Search, CreditCard, Banknote, Smartphone, ReceiptText, ArrowUpRight } from "lucide-react";
+import { Plus, X, Search, CreditCard, Banknote, Smartphone, ReceiptText, ArrowUpRight, Split } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/pdv")({
   head: () => ({ meta: [{ title: "PDV — Cantinho do Açaí" }] }),
   component: PDV,
 });
 
-type Pgto = "pix" | "cartao" | "dinheiro" | "fiado";
+type Pgto = "pix" | "cartao" | "dinheiro" | "fiado" | "dividido";
 type Cliente = { id: string; nome: string; telefone: string | null };
 type Venda = { id: string; produto: string; valor: number; tipo_pagamento: string; created_at: string };
 
@@ -72,19 +72,22 @@ function PDV() {
     if (!pedidoNome.trim()) return toast.error("Informe o nome do pedido");
     const valorNum = parseFloat(pedidoValor.replace(",", "."));
     if (!valorNum || valorNum <= 0) return toast.error("Informe um valor válido");
-    if (pgto === "fiado" && !clienteSel) return toast.error("Selecione um cliente para o fiado");
+    if ((pgto === "fiado" || pgto === "dividido") && !clienteSel) return toast.error("Selecione um cliente para prosseguir");
     
     let aVistaNum = 0;
-    if (pgto === "fiado" && valorPagoAVista) {
+    if (pgto === "dividido") {
       aVistaNum = parseFloat(valorPagoAVista.replace(",", "."));
-      if (aVistaNum > valorNum) return toast.error("Valor pago não pode ser maior que o valor total");
+      if (!aVistaNum || aVistaNum <= 0) return toast.error("Informe um valor pago à vista válido");
+      if (aVistaNum >= valorNum) return toast.error("Valor à vista não pode ser maior ou igual ao total");
+    } else if (pgto === "fiado" && valorPagoAVista) {
+      aVistaNum = 0; // Se o usuário havia digitado algo, ignoramos no fiado puro
     }
     
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user!.id;
-      const isFiado = pgto === "fiado";
+      const isFiado = pgto === "fiado" || pgto === "dividido";
 
       const { data: venda, error: e1 } = await supabase.from("vendas").insert({
         user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: pgto,
@@ -122,7 +125,7 @@ function PDV() {
 
   const valorNumTemp = parseFloat(pedidoValor.replace(",", ".")) || 0;
   const aVistaNumTemp = parseFloat(valorPagoAVista.replace(",", ".")) || 0;
-  const restanteFiado = valorNumTemp - aVistaNumTemp;
+  const restanteFiado = pgto === "dividido" ? valorNumTemp - aVistaNumTemp : valorNumTemp;
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto" }}>
@@ -212,19 +215,20 @@ function PDV() {
 
               <div style={{ borderTop: "1px solid var(--white-10)", paddingTop: 16 }}>
                 <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 11, textTransform: "uppercase", letterSpacing: "1.2px", color: "var(--white-70)", marginBottom: 10 }}>Pagamento</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
                   {([
                     { v: "pix", l: "Pix", i: <Smartphone className="h-4 w-4" /> },
                     { v: "cartao", l: "Cartão", i: <CreditCard className="h-4 w-4" /> },
                     { v: "dinheiro", l: "Dinh.", i: <Banknote className="h-4 w-4" /> },
                     { v: "fiado", l: "Fiado", i: <ReceiptText className="h-4 w-4" /> },
+                    { v: "dividido", l: "Divid.", i: <Split className="h-4 w-4" /> },
                   ] as const).map((o) => (
                     <button
                       key={o.v}
                       onClick={() => setPgto(o.v)}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
-                        padding: "10px 4px", borderRadius: 10,
+                        padding: "10px 2px", borderRadius: 10,
                         fontFamily: "var(--font-sans)", fontSize: 10, fontWeight: 600,
                         cursor: "pointer", transition: "all 0.2s",
                         background: pgto === o.v ? "linear-gradient(135deg, #5a2d9c, #7c3aed)" : "var(--white-5)",
@@ -239,31 +243,32 @@ function PDV() {
                 </div>
               </div>
 
-              {pgto === "fiado" && (
+              {(pgto === "fiado" || pgto === "dividido") && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="space-y-4">
-                  {/* Pagamento Dividido */}
-                  <div className="glass rounded-xl p-4 space-y-3">
-                    <div className="text-xs font-semibold text-foreground uppercase tracking-wider">Pagamento Dividido (Opcional)</div>
-                    <div className="flex gap-2">
-                      <div className="flex-1">
-                        <label className="text-xs text-foreground/60 ml-1">Valor pago agora</label>
-                        <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
+                  {pgto === "dividido" && (
+                    <div className="glass rounded-xl p-4 space-y-3">
+                      <div className="text-xs font-semibold text-foreground uppercase tracking-wider">Pagamento Dividido</div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="text-xs text-foreground/60 ml-1">Valor pago agora</label>
+                          <input value={valorPagoAVista} onChange={(e) => setValorPagoAVista(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="0.00" type="text" inputMode="decimal" className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <label className="text-xs text-foreground/60 ml-1">Método</label>
+                          <select value={metodoPagoAVista} onChange={(e) => setMetodoPagoAVista(e.target.value as any)} className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground appearance-none">
+                            <option value="pix">Pix</option>
+                            <option value="dinheiro">Dinheiro</option>
+                            <option value="cartao">Cartão</option>
+                          </select>
+                        </div>
                       </div>
-                      <div className="flex-1">
-                        <label className="text-xs text-foreground/60 ml-1">Método</label>
-                        <select value={metodoPagoAVista} onChange={(e) => setMetodoPagoAVista(e.target.value as any)} className="w-full mt-1 px-3 py-2 rounded-lg bg-input border border-glass-border focus:ring-2 focus:ring-ring text-sm text-foreground appearance-none">
-                          <option value="pix">Pix</option>
-                          <option value="dinheiro">Dinheiro</option>
-                          <option value="cartao">Cartão</option>
-                        </select>
-                      </div>
+                      {aVistaNumTemp > 0 && restanteFiado > 0 && (
+                        <div className="text-xs text-foreground/70 bg-black/10 p-2 rounded-lg text-center">
+                          Restante fiado: <strong className="text-fiado-foreground">{brl(restanteFiado)}</strong>
+                        </div>
+                      )}
                     </div>
-                    {aVistaNumTemp > 0 && restanteFiado > 0 && (
-                      <div className="text-xs text-foreground/70 bg-black/10 p-2 rounded-lg text-center">
-                        Restante fiado: <strong className="text-fiado-foreground">{brl(restanteFiado)}</strong>
-                      </div>
-                    )}
-                  </div>
+                  )}
 
                   {clienteSel ? (
                     <div className="glass rounded-xl p-3 flex items-center justify-between">

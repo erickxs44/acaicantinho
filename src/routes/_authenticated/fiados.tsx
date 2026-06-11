@@ -227,56 +227,56 @@ function Fiados() {
           <motion.div
             key={g.cli.id}
             initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-            className="glass-strong rounded-2xl p-3 md:p-4 flex flex-col items-start hover:bg-white/5 transition-colors gap-3 md:gap-4"
+            className="glass-strong rounded-xl p-3 flex flex-col items-start hover:bg-white/5 transition-colors gap-2"
           >
             {/* Header do Card */}
             <div className="flex w-full justify-between items-start">
               <div className="flex items-center gap-2 md:gap-3">
-                <div className="h-9 w-9 md:h-11 md:w-11 rounded-xl gradient-primary glow flex items-center justify-center font-bold text-base md:text-lg text-white">
+                <div className="h-8 w-8 md:h-10 md:w-10 rounded-lg gradient-primary glow flex items-center justify-center font-bold text-sm md:text-base text-white">
                   {g.cli.nome[0].toUpperCase()}
                 </div>
                 <div>
-                  <div className="font-bold truncate text-base md:text-lg text-foreground">{g.cli.nome}</div>
-                  {g.cli.telefone && <div className="text-[10px] md:text-xs text-foreground/50">{g.cli.telefone}</div>}
+                  <div className="font-bold truncate text-sm md:text-base text-foreground">{g.cli.nome}</div>
+                  {g.cli.telefone && <div className="text-[10px] text-foreground/50">{g.cli.telefone}</div>}
                 </div>
               </div>
               <button
                 onClick={() => excluirCliente(g.cli.id, g.cli.nome)}
-                className="p-2 rounded-xl text-foreground/40 hover:text-destructive hover:bg-destructive/10 transition"
+                className="p-1.5 rounded-lg text-foreground/40 hover:text-destructive hover:bg-destructive/10 transition"
                 title="Excluir cliente"
               >
-                <Trash2 className="h-5 w-5" />
+                <Trash2 className="h-4 w-4" />
               </button>
             </div>
 
             {/* Status e Ações do Card */}
-            <div className="flex w-full flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-4 border-t border-glass-border pt-3 md:pt-4">
+            <div className="flex w-full flex-col md:flex-row items-start md:items-center justify-between gap-2 border-t border-glass-border pt-2">
               <div>
-                <div className="text-[10px] text-foreground/40 uppercase font-bold mb-1">Saldo Devedor Atual</div>
-                <div className={`font-extrabold text-xl md:text-2xl leading-none ${g.emAberto > 0 ? "text-fiado-foreground" : "text-emerald-brand"}`}>
+                <div className="text-[9px] text-foreground/40 uppercase font-bold mb-0.5">Saldo Devedor Atual</div>
+                <div className={`font-extrabold text-lg md:text-xl leading-none ${g.emAberto > 0 ? "text-fiado-foreground" : "text-emerald-brand"}`}>
                   {g.emAberto > 0 ? brl(g.emAberto) : "Quitado"}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto mt-1 md:mt-0">
                 <button
                   onClick={() => setReportOpen(g.cli.id)}
-                  className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl glass hover:bg-black/5 text-foreground text-xs md:text-sm font-semibold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
+                  className="px-2 py-1.5 rounded-lg glass hover:bg-black/5 text-foreground text-[11px] md:text-xs font-semibold flex items-center gap-1 transition flex-1 md:flex-auto justify-center"
                 >
-                  <FileText className="h-4 w-4" /> Relatório
+                  <FileText className="h-3.5 w-3.5" /> Relatório
                 </button>
                 <button
                   onClick={() => setNewDebtOpen({ cli: g.cli })}
-                  className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-xs md:text-sm font-bold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
+                  className="px-2 py-1.5 rounded-lg border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center"
                 >
-                  <Plus className="h-4 w-4" /> Dívida
+                  <Plus className="h-3.5 w-3.5" /> Dívida
                 </button>
                 {g.emAberto > 0 && (
                   <button
                     onClick={() => { setPayOpen({ cli: g.cli, total: g.emAberto }); setPayAmount(g.emAberto.toFixed(2)); }}
-                    className="px-3 py-2 md:px-4 md:py-2.5 rounded-lg md:rounded-xl bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-xs md:text-sm font-bold flex items-center gap-1.5 md:gap-2 transition flex-1 md:flex-auto justify-center"
+                    className="px-2 py-1.5 rounded-lg bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center"
                   >
-                    <CheckCircle2 className="h-4 w-4" /> Pagar
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Pagar
                   </button>
                 )}
               </div>

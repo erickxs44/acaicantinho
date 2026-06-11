@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { brl, dayKey, dayLabel } from "@/lib/format";
 import { saveState, loadState } from "@/lib/offline-storage";
+import { X, Calendar as CalendarIcon } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Cantinho do Açaí" }] }),
@@ -25,11 +26,11 @@ type ClienteFiado = { nome: string; telefone: string | null; emAberto: number; q
 
 const PERIODS = [
   { label: "Hoje", days: 0 },
-  { label: "Últimos 7 dias", days: 6 },
-  { label: "Últimos 30 dias", days: 29 },
-  { label: "Últimos 3 meses", days: 90 },
-  { label: "Últimos 6 meses", days: 180 },
-  { label: "Último ano", days: 365 },
+  { label: "7D", days: 6 },
+  { label: "30D", days: 29 },
+  { label: "3M", days: 90 },
+  { label: "6M", days: 180 },
+  { label: "1A", days: 365 },
 ];
 
 function formatDateRange(from: string, to: string) {
@@ -63,6 +64,10 @@ function Dashboard() {
 
   const [dateFrom, setDateFrom] = useState(dataPadraoInicio.toISOString().slice(0, 10));
   const [dateTo, setDateTo] = useState(dataPadraoFim.toISOString().slice(0, 10));
+
+  const [dateFilterOpen, setDateFilterOpen] = useState(false);
+  const [tempDateFrom, setTempDateFrom] = useState("");
+  const [tempDateTo, setTempDateTo] = useState("");
 
   const setPeriod = (idx: number) => {
     setActivePeriod(idx);
@@ -278,9 +283,14 @@ function Dashboard() {
           </p>
         </div>
 
-        {/* Calendar Button com Select Nativo */}
+        {/* Calendar Button (Global Date Picker) */}
         <div style={{ position: "relative", display: "inline-block" }}>
           <button
+            onClick={() => {
+              setTempDateFrom(dateFrom);
+              setTempDateTo(dateTo);
+              setDateFilterOpen(true);
+            }}
             style={{
               display: "flex",
               alignItems: "center",
@@ -296,27 +306,13 @@ function Dashboard() {
               letterSpacing: "0.2px",
               boxShadow: "0 4px 20px rgba(124,58,237,0.45)",
               transition: "all 0.2s",
+              cursor: "pointer",
             }}
           >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
+            <CalendarIcon className="h-4 w-4" />
             {formatDateRange(dateFrom, dateTo)}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <select
-            value={activePeriod}
-            onChange={(e) => setPeriod(Number(e.target.value))}
-            style={{
-              position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer",
-            }}
-          >
-            {PERIODS.map((p, i) => (
-              <option key={i} value={i}>{p.label}</option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -648,6 +644,57 @@ function Dashboard() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {dateFilterOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
+            onClick={() => setDateFilterOpen(false)}
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-strong"
+              style={{
+                borderRadius: 24, padding: 24, width: "100%", maxWidth: 340,
+                position: "relative"
+              }}
+            >
+              <button onClick={() => setDateFilterOpen(false)} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--white-50)", cursor: "pointer" }}><X className="h-5 w-5" /></button>
+              
+              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "white", margin: "0 0 16px" }}>Filtro de Período</h3>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Data Inicial</label>
+                  <input type="date" value={tempDateFrom} onChange={(e) => setTempDateFrom(e.target.value)} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, background: "var(--white-5)", border: "1px solid var(--white-10)", color: "white", colorScheme: "dark" }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", color: "var(--white-70)", display: "block", marginBottom: 6 }}>Data Final</label>
+                  <input type="date" value={tempDateTo} onChange={(e) => setTempDateTo(e.target.value)} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, background: "var(--white-5)", border: "1px solid var(--white-10)", color: "white", colorScheme: "dark" }} />
+                </div>
+              </div>
+
+              <div style={{ marginTop: 24, display: "flex", gap: 8 }}>
+                <button
+                  onClick={() => {
+                    setDateFrom(tempDateFrom);
+                    setDateTo(tempDateTo);
+                    setActivePeriod(-1); // custom
+                    setDateFilterOpen(false);
+                  }}
+                  style={{ flex: 1, padding: "12px 0", borderRadius: 12, background: "linear-gradient(135deg, #5a2d9c, #7c3aed)", color: "white", border: "none", fontWeight: 600, cursor: "pointer" }}
+                >
+                  Aplicar Filtro
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
