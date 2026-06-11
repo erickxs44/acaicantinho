@@ -87,28 +87,46 @@ function PDV() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user!.id;
-      const isFiado = pgto === "fiado" || pgto === "dividido";
-      const dbTipoPagamento = pgto === "dividido" ? "fiado" : pgto;
 
-      const { data: venda, error: e1 } = await supabase.from("vendas").insert({
-        user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: dbTipoPagamento,
-        cliente_id: clienteSel?.id ?? null, is_fiado: isFiado,
-      }).select().single();
-      if (e1) throw e1;
+      if (pgto === "dividido") {
+        // Venda 1: À Vista (Entrada)
+        const { error: eVista } = await supabase.from("vendas").insert({
+          user_id: userId, produto: pedidoNome.trim() + " (Entrada)", valor: aVistaNumTemp, tipo_pagamento: metodoPagoAVista,
+          cliente_id: clienteSel?.id ?? null, is_fiado: false,
+        });
+        if (eVista) throw eVista;
 
-      if (isFiado) {
-        const { data: fiado, error: e2 } = await supabase.from("fiados_registros").insert({
-          user_id: userId, cliente_id: clienteSel!.id, venda_id: venda.id,
-          descricao: pedidoNome.trim(), valor_total: valorNum, 
-          valor_pago: aVistaNum, status: aVistaNum >= valorNum ? "pago" : "aberto"
+        // Venda 2: Fiado (Restante)
+        const { data: vendaFiado, error: eFiado } = await supabase.from("vendas").insert({
+          user_id: userId, produto: pedidoNome.trim() + " (Restante Fiado)", valor: restanteFiado, tipo_pagamento: "fiado",
+          cliente_id: clienteSel?.id ?? null, is_fiado: true,
         }).select().single();
-        if (e2) throw e2;
+        if (eFiado) throw eFiado;
 
-        if (aVistaNum > 0) {
-          const { error: e3 } = await supabase.from("fiados_pagamentos").insert({
-            user_id: userId, fiado_id: fiado.id, valor: aVistaNum
-          });
-          if (e3) throw e3;
+        // Registro Fiado (Apenas do valor restante)
+        const { error: eRegFiado } = await supabase.from("fiados_registros").insert({
+          user_id: userId, cliente_id: clienteSel!.id, venda_id: vendaFiado.id,
+          descricao: pedidoNome.trim() + " (Restante Fiado)", valor_total: restanteFiado, 
+          valor_pago: 0, status: "aberto"
+        });
+        if (eRegFiado) throw eRegFiado;
+
+      } else {
+        // Fluxo normal
+        const isFiado = pgto === "fiado";
+        const { data: venda, error: e1 } = await supabase.from("vendas").insert({
+          user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: pgto,
+          cliente_id: clienteSel?.id ?? null, is_fiado: isFiado,
+        }).select().single();
+        if (e1) throw e1;
+
+        if (isFiado) {
+          const { data: fiado, error: e2 } = await supabase.from("fiados_registros").insert({
+            user_id: userId, cliente_id: clienteSel!.id, venda_id: venda.id,
+            descricao: pedidoNome.trim(), valor_total: valorNum, 
+            valor_pago: 0, status: "aberto"
+          }).select().single();
+          if (e2) throw e2;
         }
       }
       toast.success(`Venda de ${brl(valorNum)} registrada!`);
@@ -287,20 +305,24 @@ function PDV() {
                           value={busca}
                           onChange={(e) => setBusca(e.target.value)}
                           onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)}
-                          placeholder="Buscar cliente..."
+                          placeholder="Buscar cliente pelo nome..."
                           className="w-full pl-9 pr-3 py-3 rounded-xl bg-input border border-glass-border text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         />
                       </div>
-                      <div className="max-h-32 overflow-auto space-y-1">
-                        {filtered.length === 0 ? (
-                          <p className="text-xs text-foreground/40 text-center py-4">Nenhum cliente</p>
-                        ) : filtered.map((c) => (
-                          <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-black/5 transition">
-                            <div className="text-sm font-semibold text-foreground">{c.nome}</div>
-                            {c.telefone && <div className="text-xs text-foreground/50">{c.telefone}</div>}
-                          </button>
-                        ))}
-                      </div>
+                      
+                      {busca.trim() !== "" && (
+                        <div className="max-h-32 overflow-auto space-y-1 mt-2">
+                          {filtered.length === 0 ? (
+                            <p className="text-xs text-foreground/40 text-center py-4">Nenhum cliente encontrado</p>
+                          ) : filtered.map((c) => (
+                            <button key={c.id} onClick={() => setClienteSel(c)} className="w-full text-left glass rounded-lg p-2.5 hover:bg-black/5 transition">
+                              <div className="text-sm font-semibold text-foreground">{c.nome}</div>
+                              {c.telefone && <div className="text-xs text-foreground/50">{c.telefone}</div>}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      
                       {novoCliente ? (
                         <div className="glass rounded-xl p-3 space-y-2">
                           <input value={novoNome} onChange={(e) => setNovoNome(e.target.value)} onFocus={(e) => setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)} placeholder="Nome" className="w-full px-3 py-2 rounded-lg bg-input text-sm text-foreground" />
