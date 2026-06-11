@@ -88,9 +88,10 @@ function PDV() {
       const { data: { user } } = await supabase.auth.getUser();
       const userId = user!.id;
       const isFiado = pgto === "fiado" || pgto === "dividido";
+      const dbTipoPagamento = pgto === "dividido" ? "fiado" : pgto;
 
       const { data: venda, error: e1 } = await supabase.from("vendas").insert({
-        user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: pgto,
+        user_id: userId, produto: pedidoNome.trim(), valor: valorNum, tipo_pagamento: dbTipoPagamento,
         cliente_id: clienteSel?.id ?? null, is_fiado: isFiado,
       }).select().single();
       if (e1) throw e1;
