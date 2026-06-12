@@ -22,6 +22,7 @@ function Movimentacao() {
   
   // Controle do Modal de Exclusão
   const [rowToDelete, setRowToDelete] = useState<Row | null>(null);
+  const [savingRemove, setSavingRemove] = useState(false);
 
   const load = useCallback(async () => {
     // Busca os últimos 100 registros de cada tabela para popular o histórico recente
@@ -53,9 +54,9 @@ function Movimentacao() {
   }, [load]);
 
   const remove = async () => {
-    if (!rowToDelete) return;
+    if (!rowToDelete || savingRemove) return;
     const r = rowToDelete;
-    
+    setSavingRemove(true);
     try {
       if (r.table === "vendas") {
         // Exclusão em cascata manual (Pagamentos -> Fiado -> Venda)
@@ -93,6 +94,8 @@ function Movimentacao() {
       window.dispatchEvent(new CustomEvent("data:changed"));
     } catch (error: any) {
       toast.error("Erro ao estornar: " + error.message);
+    } finally {
+      setSavingRemove(false);
     }
   };
 
@@ -227,10 +230,18 @@ function Movimentacao() {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <button onClick={remove} className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-bold hover:brightness-110 transition shadow-lg">
-                  Sim
+                <button
+                  onClick={remove}
+                  disabled={savingRemove}
+                  className="flex-1 py-3 rounded-xl bg-destructive text-destructive-foreground font-bold hover:brightness-110 transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingRemove ? "Removendo..." : "Sim"}
                 </button>
-                <button onClick={() => setRowToDelete(null)} className="flex-1 py-3 rounded-xl glass text-foreground font-bold hover:bg-black/10 transition">
+                <button
+                  onClick={() => setRowToDelete(null)}
+                  disabled={savingRemove}
+                  className="flex-1 py-3 rounded-xl glass text-foreground font-bold hover:bg-black/10 transition disabled:opacity-40"
+                >
                   Não
                 </button>
               </div>

@@ -40,12 +40,16 @@ function Fiados() {
   // Pagar (Baixa Parcial ou Total)
   const [payOpen, setPayOpen] = useState<{ cli: Cliente; total: number } | null>(null);
   const [payAmount, setPayAmount] = useState("");
-  
+  const [savingPay, setSavingPay] = useState(false);
+
   // Nova Dívida Direta
   const [newDebtOpen, setNewDebtOpen] = useState<{ cli: Cliente } | null>(null);
   const [debtDesc, setDebtDesc] = useState("");
   const [debtValor, setDebtValor] = useState("");
   const [savingDebt, setSavingDebt] = useState(false);
+
+  // Excluir Cliente
+  const [savingExcluir, setSavingExcluir] = useState<string | null>(null);
 
   const [newClientOpen, setNewClientOpen] = useState(false);
 
@@ -112,40 +116,47 @@ function Fiados() {
   };
 
   const pagar = async () => {
-    if (!payOpen) return;
+    if (!payOpen || savingPay) return;
     const n = parseFloat(payAmount.replace(",", "."));
     if (!n || n <= 0) return toast.error("Valor inválido");
     if (n > payOpen.total + 0.001) return toast.error("Valor inserido é maior que o saldo devedor");
 
-    const { data: { user } } = await supabase.auth.getUser();
-    const userId = user!.id;
-    let restante = n;
-    
-    // Distribui o pagamento entre os registros abertos (dos mais antigos para os mais novos)
-    const itens = [...fiados.filter((f) => f.cliente_id === payOpen.cli.id && f.status === "aberto")]
-      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+    setSavingPay(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user!.id;
+      let restante = n;
+      
+      // Distribui o pagamento entre os registros abertos (dos mais antigos para os mais novos)
+      const itens = [...fiados.filter((f) => f.cliente_id === payOpen.cli.id && f.status === "aberto")]
+        .sort((a, b) => a.created_at.localeCompare(b.created_at));
 
-    for (const f of itens) {
-      if (restante <= 0) break;
-      const saldo = Number(f.valor_total) - Number(f.valor_pago);
-      const aplicar = Math.min(restante, saldo);
-      const novoPago = Number(f.valor_pago) + aplicar;
-      const fechou = novoPago >= Number(f.valor_total) - 0.001;
-      
-      await supabase.from("fiados_registros").update({
-        valor_pago: novoPago,
-        status: fechou ? "pago" : "aberto",
-        paid_at: fechou ? new Date().toISOString() : null,
-      }).eq("id", f.id);
-      
-      await supabase.from("fiados_pagamentos").insert({ user_id: userId, fiado_id: f.id, valor: aplicar });
-      restante -= aplicar;
+      for (const f of itens) {
+        if (restante <= 0) break;
+        const saldo = Number(f.valor_total) - Number(f.valor_pago);
+        const aplicar = Math.min(restante, saldo);
+        const novoPago = Number(f.valor_pago) + aplicar;
+        const fechou = novoPago >= Number(f.valor_total) - 0.001;
+        
+        await supabase.from("fiados_registros").update({
+          valor_pago: novoPago,
+          status: fechou ? "pago" : "aberto",
+          paid_at: fechou ? new Date().toISOString() : null,
+        }).eq("id", f.id);
+        
+        await supabase.from("fiados_pagamentos").insert({ user_id: userId, fiado_id: f.id, valor: aplicar });
+        restante -= aplicar;
+      }
+      toast.success(`Pagamento de ${brl(n)} registrado com sucesso!`);
+      setPayOpen(null); setPayAmount(""); 
+      if (reportOpen) { setReportOpen(null); }
+      load();
+      window.dispatchEvent(new CustomEvent("data:changed"));
+    } catch (e: any) {
+      toast.error("Erro ao registrar pagamento: " + e.message);
+    } finally {
+      setSavingPay(false);
     }
-    toast.success(`Pagamento de ${brl(n)} registrado com sucesso!`);
-    setPayOpen(null); setPayAmount(""); 
-    if (reportOpen) { setReportOpen(null); }
-    load();
-    window.dispatchEvent(new CustomEvent("data:changed"));
   };
 
   const criarDivida = async () => {
@@ -184,9 +195,11 @@ function Fiados() {
   };
 
   const excluirCliente = async (clienteId: string, nome: string) => {
+    if (savingExcluir === clienteId) return;
     if (!window.confirm(`Tem certeza que deseja excluir o cliente "${nome}"? O registro desaparecerá, mas o histórico financeiro será mantido nas Movimentações.`)) {
       return;
     }
+    setSavingExcluir(clienteId);
     try {
       // Soft Delete: renomeia o cliente e oculta-o. Cancela as dívidas em aberto para não sujar o dashboard.
       await supabase.from("fiados_registros").update({ status: "cancelado" }).eq("cliente_id", clienteId).eq("status", "aberto");
@@ -199,6 +212,8 @@ function Fiados() {
       window.dispatchEvent(new CustomEvent("data:changed"));
     } catch (e: any) {
       toast.error("Erro ao excluir: " + e.message);
+    } finally {
+      setSavingExcluir(null);
     }
   };
 
@@ -242,7 +257,8 @@ function Fiados() {
               </div>
               <button
                 onClick={() => excluirCliente(g.cli.id, g.cli.nome)}
-                className="p-1.5 rounded-lg text-foreground/40 hover:text-destructive hover:bg-destructive/10 transition"
+                disabled={savingExcluir === g.cli.id}
+                className="p-1.5 rounded-lg text-foreground/40 hover:text-destructive hover:bg-destructive/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 title="Excluir cliente"
               >
                 <Trash2 className="h-4 w-4" />
@@ -267,14 +283,16 @@ function Fiados() {
                 </button>
                 <button
                   onClick={() => setNewDebtOpen({ cli: g.cli })}
-                  className="px-2 py-1.5 rounded-lg border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center"
+                  disabled={savingDebt}
+                  className="px-2 py-1.5 rounded-lg border border-fiado/20 text-fiado-foreground hover:bg-fiado/10 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Plus className="h-3.5 w-3.5" /> Dívida
                 </button>
                 {g.emAberto > 0 && (
                   <button
                     onClick={() => { setPayOpen({ cli: g.cli, total: g.emAberto }); setPayAmount(g.emAberto.toFixed(2)); }}
-                    className="px-2 py-1.5 rounded-lg bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center"
+                    disabled={savingPay}
+                    className="px-2 py-1.5 rounded-lg bg-emerald-brand/10 text-emerald-brand hover:bg-emerald-brand/20 text-[11px] md:text-xs font-bold flex items-center gap-1 transition flex-1 md:flex-auto justify-center disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" /> Pagar
                   </button>
@@ -363,8 +381,14 @@ function Fiados() {
             )}
 
             <div className="flex gap-2 pt-2">
-              <button onClick={pagar} className="flex-1 py-3 rounded-xl gradient-emerald font-bold text-white glow">Pagar agora</button>
-              <button onClick={() => setPayOpen(null)} className="px-4 py-3 rounded-xl glass text-foreground font-medium">Cancelar</button>
+              <button
+                onClick={pagar}
+                disabled={savingPay}
+                className="flex-1 py-3 rounded-xl gradient-emerald font-bold text-white glow disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {savingPay ? "Processando..." : "Pagar agora"}
+              </button>
+              <button onClick={() => setPayOpen(null)} disabled={savingPay} className="px-4 py-3 rounded-xl glass text-foreground font-medium disabled:opacity-40">Cancelar</button>
             </div>
           </Modal>
         )}
