@@ -21,8 +21,7 @@ type Stats = {
   chartFiados: { day: string; valor: number }[];
 };
 
-type RecentMov = { id: string; tipo: "entrada" | "saida" | "fiado"; descricao: string; valor: number; hora: string };
-type ClienteFiado = { nome: string; telefone: string | null; emAberto: number; qtd: number };
+
 
 const PERIODS = [
   { label: "Hoje", days: 0 },
@@ -55,8 +54,7 @@ function Dashboard() {
   }));
   const [loading, setLoading] = useState(true);
   const [activePeriod, setActivePeriod] = useState(1); // default "7d"
-  const [recentMovs, setRecentMovs] = useState<RecentMov[]>(() => loadState("dashboardRecent", []));
-  const [topFiados, setTopFiados] = useState<ClienteFiado[]>(() => loadState("dashboardTopFiados", []));
+
 
   const dataPadraoFim = new Date();
   const dataPadraoInicio = new Date();
@@ -98,19 +96,17 @@ function Dashboard() {
     const fromDate = new Date(dateFrom + "T00:00:00");
     const toDate = new Date(dateTo + "T23:59:59");
 
-    const [vendasRes, despesasRes, fiadosRes, pagamentosRes, clientesRes] = await Promise.all([
+    const [vendasRes, despesasRes, fiadosRes, pagamentosRes] = await Promise.all([
       supabase.from("vendas").select("valor,is_fiado,created_at,produto,tipo_pagamento").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("despesas").select("valor,created_at,descricao").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("fiados_registros").select("valor_total,valor_pago,status,created_at,cliente_id").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
       supabase.from("fiados_pagamentos").select("valor,created_at,fiado_id").gte("created_at", fromDate.toISOString()).lte("created_at", toDate.toISOString()),
-      supabase.from("clientes").select("id,nome,telefone"),
     ]);
 
     const vendas = vendasRes.data ?? [];
     const despesas = despesasRes.data ?? [];
     const fiados = fiadosRes.data ?? [];
     const pagamentos = pagamentosRes.data ?? [];
-    const clientes = clientesRes.data ?? [];
 
     const faturamentoTotal =
       vendas.filter((v) => !v.is_fiado).reduce((s, v) => s + Number(v.valor), 0) +
@@ -164,44 +160,7 @@ function Dashboard() {
       chartFiados: days.map(({ day, fiados }) => ({ day, valor: fiados })),
     });
 
-    // Recent movs (últimas 5)
-    const allMovs: RecentMov[] = [
-      ...vendas.slice(0, 3).map((v) => ({
-        id: "v" + Math.random(),
-        tipo: (v.is_fiado ? "fiado" : "entrada") as RecentMov["tipo"],
-        descricao: v.is_fiado ? `Fiado: ${v.produto}` : `${v.produto}`,
-        valor: Number(v.valor),
-        hora: new Date(v.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-      })),
-      ...despesas.slice(0, 2).map((d) => ({
-        id: "d" + Math.random(),
-        tipo: "saida" as RecentMov["tipo"],
-        descricao: d.descricao,
-        valor: Number(d.valor),
-        hora: new Date(d.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-      })),
-    ].slice(0, 5);
-    setRecentMovs(allMovs);
 
-    // Top clients with fiados
-    const allFiados = fiados.filter((f) => f.status === "aberto");
-
-    const clientMap = new Map<string, ClienteFiado>();
-    for (const cli of clientes.filter((c) => !c.nome.startsWith("[EXCLUÍDO]"))) {
-      clientMap.set(cli.id, { nome: cli.nome, telefone: cli.telefone, emAberto: 0, qtd: 0 });
-    }
-    for (const f of allFiados) {
-      const entry = clientMap.get(f.cliente_id);
-      if (entry) {
-        entry.emAberto += Number(f.valor_total) - Number(f.valor_pago);
-        entry.qtd++;
-      }
-    }
-    const sorted = [...clientMap.values()]
-      .filter((c) => c.emAberto > 0)
-      .sort((a, b) => b.emAberto - a.emAberto)
-      .slice(0, 5);
-    setTopFiados(sorted);
 
     // Salva os estados offline
     saveState("dashboardStats", {
@@ -210,8 +169,7 @@ function Dashboard() {
       chartDespesas: days.map(({ day, despesas }) => ({ day, valor: despesas })),
       chartFiados: days.map(({ day, fiados }) => ({ day, valor: fiados })),
     });
-    saveState("dashboardRecent", allMovs);
-    saveState("dashboardTopFiados", sorted);
+
 
     setLoading(false);
   }
@@ -253,7 +211,7 @@ function Dashboard() {
   const areaDespesas = buildArea(stats.chartDespesas, maxAll, "#f4617b");
   const areaFiados = buildArea(stats.chartFiados, maxAll, "#fbbf24");
 
-  const totalFiadosAberto = topFiados.reduce((s, c) => s + c.emAberto, 0);
+
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 32 }}>
@@ -499,151 +457,7 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* ── BOTTOM GRID ───────────────────────────────────────────── */}
-      <div style={{ gap: 16 }} className="grid grid-cols-1 md:grid-cols-2">
 
-        {/* Movimentações Recentes */}
-        <div className="panel">
-          <h3 style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 600,
-            fontSize: 15,
-            color: "white",
-            margin: "0 0 16px",
-          }}>
-            Movimentações Recentes
-          </h3>
-          <div>
-            {recentMovs.length === 0 ? (
-              <p style={{ color: "var(--white-70)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-                Nenhuma movimentação no período
-              </p>
-            ) : recentMovs.map((m, i) => (
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 0",
-                  borderBottom: i < recentMovs.length - 1 ? "1px solid var(--white-5)" : "none",
-                }}
-              >
-                <div style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                  background: m.tipo === "entrada" ? "rgba(34,211,165,0.15)" :
-                    m.tipo === "saida" ? "rgba(244,97,123,0.15)" : "rgba(251,191,36,0.15)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 16,
-                }}>
-                  {m.tipo === "entrada" ? "💳" : m.tipo === "saida" ? "🏪" : "👤"}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 13, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {m.descricao}
-                  </div>
-                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 400, fontSize: 11, color: "var(--white-70)" }}>
-                    {m.hora}
-                  </div>
-                </div>
-                <div style={{
-                  fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, flexShrink: 0,
-                  color: m.tipo === "entrada" ? "#22d3a5" : m.tipo === "saida" ? "#f4617b" : "#fbbf24",
-                }}>
-                  {m.tipo === "entrada" ? "+" : m.tipo === "saida" ? "−" : ""}{brl(m.valor)}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* Clientes em Fiado */}
-        <div className="panel" style={{ display: "flex", flexDirection: "column" }}>
-          <h3 style={{
-            fontFamily: "var(--font-display)",
-            fontWeight: 600,
-            fontSize: 15,
-            color: "white",
-            margin: "0 0 16px",
-          }}>
-            Clientes em Fiado
-          </h3>
-
-          <div style={{ flex: 1 }}>
-            {topFiados.length === 0 ? (
-              <p style={{ color: "var(--white-70)", fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-                Nenhum cliente com saldo em aberto 🎉
-              </p>
-            ) : topFiados.map((c, i) => {
-              const initials = c.nome.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase();
-              return (
-                <motion.div
-                  key={c.nome + i}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "10px 0",
-                    borderBottom: i < topFiados.length - 1 ? "1px solid var(--white-5)" : "none",
-                  }}
-                >
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-                    background: "linear-gradient(135deg, #5a2d9c, #9d5bf5)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, color: "white",
-                  }}>
-                    {initials}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 13, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {c.nome}
-                    </div>
-                    {c.telefone && (
-                      <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--white-70)" }}>
-                        {c.telefone}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ textAlign: "right", flexShrink: 0 }}>
-                    <div style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 13, color: "#fbbf24" }}>
-                      {brl(c.emAberto)}
-                    </div>
-                    <div style={{ fontFamily: "var(--font-sans)", fontSize: 10, color: "var(--white-70)" }}>
-                      {c.qtd} pendência{c.qtd !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-
-          {/* Footer bar */}
-          <div style={{
-            marginTop: 16,
-            background: "var(--white-5)",
-            border: "1px solid var(--white-10)",
-            borderRadius: 12,
-            padding: 14,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}>
-            <span style={{ fontFamily: "var(--font-sans)", fontSize: 12, color: "var(--white-70)" }}>
-              Total em aberto
-            </span>
-            <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "#fbbf24" }}>
-              {loading ? "..." : brl(totalFiadosAberto)}
-            </span>
-          </div>
-        </div>
-      </div>
 
       <AnimatePresence>
         {dateFilterOpen && (
