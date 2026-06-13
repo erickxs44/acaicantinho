@@ -34,11 +34,8 @@ function PDV() {
   const [valorPagoAVista, setValorPagoAVista] = useState("");
   const [metodoPagoAVista, setMetodoPagoAVista] = useState<"pix" | "cartao" | "dinheiro">("pix");
 
-  const [recentSales, setRecentSales] = useState<Venda[]>(() => loadState("pdvRecentSales", []));
-
   useEffect(() => { 
     loadClientes(); 
-    loadRecentSales();
   }, []);
 
   async function loadClientes() {
@@ -46,13 +43,6 @@ function PDV() {
     const clis = data ?? [];
     setClientes(clis);
     saveState("pdvClientes", clis);
-  }
-
-  async function loadRecentSales() {
-    const { data } = await supabase.from("vendas").select("id,produto,valor,tipo_pagamento,created_at").order("created_at", { ascending: false }).limit(10);
-    const sales = data ?? [];
-    setRecentSales(sales);
-    saveState("pdvRecentSales", sales);
   }
 
   const filtered = busca ? clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase())) : clientes;
@@ -144,7 +134,6 @@ function PDV() {
       setPedidoNome(""); setPedidoValor(""); setClienteSel(null); setPgto("pix");
       setValorPagoAVista(""); setMetodoPagoAVista("pix");
       setModalOpen(false);
-      loadRecentSales();
       window.dispatchEvent(new CustomEvent("data:changed"));
     } catch (e: any) {
       toast.error(e.message);
@@ -162,49 +151,28 @@ function PDV() {
           <h1 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 26, letterSpacing: "-0.5px", color: "white", margin: 0 }}>PDV</h1>
           <p style={{ fontFamily: "var(--font-sans)", fontSize: 13, color: "var(--white-70)", marginTop: 2 }}>Ponto de venda</p>
         </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "50vh", gap: 24 }}>
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setModalOpen(true)}
           style={{
-            display: "flex", alignItems: "center", gap: 8,
+            display: "flex", alignItems: "center", gap: 12,
             background: "linear-gradient(135deg, #5a2d9c, #7c3aed)",
             color: "white", border: "none",
-            borderRadius: 12, padding: "12px 20px",
-            fontFamily: "var(--font-sans)", fontWeight: 600, fontSize: 14,
+            borderRadius: 24, padding: "24px 40px",
+            fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20,
             cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(124,58,237,0.4)",
+            boxShadow: "0 8px 32px rgba(124,58,237,0.4)",
+            transition: "all 0.2s ease"
           }}
         >
-          <Plus className="h-5 w-5" /> Registrar Venda
+          <Plus className="h-8 w-8" /> Registrar Nova Venda
         </motion.button>
-      </div>
-
-      <div className="panel" style={{ minHeight: 400 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "white", marginBottom: 16 }}>Vendas Recentes</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {recentSales.length === 0 ? (
-            <p style={{ textAlign: "center", color: "var(--white-70)", padding: "48px 0", fontFamily: "var(--font-sans)" }}>Nenhuma venda recente.</p>
-          ) : (
-            recentSales.map((v) => (
-              <motion.div key={v.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 14,
-                  background: "var(--white-5)", border: "1px solid rgba(34,211,165,0.1)",
-                  borderRadius: 14, padding: "14px 16px",
-                }}
-              >
-                <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, background: "rgba(34,211,165,0.15)", color: "#22d3a5", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <ArrowUpRight className="h-5 w-5" />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.produto}</div>
-                  <div style={{ fontFamily: "var(--font-sans)", fontSize: 11, color: "var(--white-70)" }}>{dateBR(v.created_at)} · {v.tipo_pagamento}</div>
-                </div>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, color: "#22d3a5", flexShrink: 0 }}>{brl(v.valor)}</div>
-              </motion.div>
-            ))
-          )}
-        </div>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--white-70)", textAlign: "center" }}>
+          Clique no botão acima para iniciar uma venda
+        </p>
       </div>
 
       <AnimatePresence>

@@ -18,18 +18,7 @@ function PDG() {
   const [valor, setValor] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const [recentDespesas, setRecentDespesas] = useState<{ id: string; descricao: string; valor: number }[]>(() => loadState("pdgRecentDespesas", []));
 
-  useEffect(() => {
-    loadRecentDespesas();
-  }, []);
-
-  async function loadRecentDespesas() {
-    const { data } = await supabase.from("despesas").select("id,descricao,valor").order("created_at", { ascending: false }).limit(10);
-    const desp = data ?? [];
-    setRecentDespesas(desp);
-    saveState("pdgRecentDespesas", desp);
-  }
 
   const finalizar = async () => {
     if (saving) return;
@@ -52,7 +41,6 @@ function PDG() {
       // Reset form
       setDescricao(""); setValor("");
       setModalOpen(false);
-      loadRecentDespesas();
       window.dispatchEvent(new CustomEvent("data:changed"));
     } catch (e: any) {
       toast.error(e.message);
@@ -70,56 +58,28 @@ function PDG() {
             Registre saídas e gastos do caixa
           </p>
         </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "50vh", gap: 24 }}>
         <motion.button
           whileTap={{ scale: 0.96 }}
           onClick={() => setModalOpen(true)}
           style={{
-            display: "flex", alignItems: "center", gap: 8,
+            display: "flex", alignItems: "center", gap: 12,
             background: "rgba(244,97,123,0.15)",
             color: "#f4617b",
             border: "1px solid rgba(244,97,123,0.25)",
-            borderRadius: 12,
-            padding: "12px 20px",
-            fontFamily: "var(--font-sans)",
-            fontWeight: 600,
-            fontSize: 14,
+            borderRadius: 24, padding: "24px 40px",
+            fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20,
             cursor: "pointer",
-            transition: "all 0.2s",
+            transition: "all 0.2s ease"
           }}
         >
-          <Plus className="h-5 w-5" /> Registrar Despesa
+          <Plus className="h-8 w-8" /> Registrar Nova Despesa
         </motion.button>
-      </div>
-
-      <div className="panel" style={{ minHeight: 400 }}>
-        <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 16, color: "white", marginBottom: 16 }}>Despesas Recentes</h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {recentDespesas.length === 0 ? (
-            <p style={{ textAlign: "center", color: "var(--white-70)", padding: "48px 0", fontFamily: "var(--font-sans)" }}>Nenhuma despesa recente.</p>
-          ) : (
-            recentDespesas.map((d) => (
-              <motion.div key={d.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                style={{
-                  display: "flex", alignItems: "center", gap: 14,
-                  background: "var(--white-5)", border: "1px solid rgba(244,97,123,0.1)",
-                  borderRadius: 14, padding: "14px 16px",
-                }}
-              >
-                <div style={{
-                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                  background: "rgba(244,97,123,0.15)", color: "#f4617b",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <ArrowDownRight className="h-5 w-5" />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: "var(--font-sans)", fontWeight: 500, fontSize: 14, color: "white", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.descricao}</div>
-                </div>
-                <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, color: "#f4617b", flexShrink: 0 }}>{brl(d.valor)}</div>
-              </motion.div>
-            ))
-          )}
-        </div>
+        <p style={{ fontFamily: "var(--font-sans)", fontSize: 14, color: "var(--white-70)", textAlign: "center" }}>
+          Clique no botão acima para registrar um gasto
+        </p>
       </div>
 
       <AnimatePresence>
