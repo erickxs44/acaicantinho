@@ -28,6 +28,7 @@ function Configuracoes() {
   };
 
   const zerarSistema = async () => {
+    if (resetting) return;
     if (resetText !== "ZERAR") return;
     setResetting(true);
     try {

@@ -160,7 +160,7 @@ function Fiados() {
   };
 
   const criarDivida = async () => {
-    if (!newDebtOpen) return;
+    if (!newDebtOpen || savingDebt) return;
     const { cli } = newDebtOpen;
     if (!debtDesc.trim()) return toast.error("Preencha a descrição da dívida");
     const v = parseFloat(debtValor.replace(",", "."));
@@ -459,6 +459,7 @@ function NewClientModal({ onClose, onSaved }: { onClose: () => void; onSaved: ()
   const [saving, setSaving] = useState(false);
 
   const salvar = async () => {
+    if (saving) return;
     if (!novoNome.trim()) return toast.error("Nome obrigatório");
     setSaving(true);
     try {

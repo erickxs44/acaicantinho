@@ -32,6 +32,7 @@ function PDG() {
   }
 
   const finalizar = async () => {
+    if (saving) return;
     if (!descricao.trim()) return toast.error("Informe a descrição da despesa");
     const valorNum = parseFloat(valor.replace(",", "."));
     if (!valorNum || valorNum <= 0) return toast.error("Informe um valor válido");

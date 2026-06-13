@@ -58,17 +58,26 @@ function PDV() {
   const filtered = busca ? clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase())) : clientes;
 
   const criarCliente = async () => {
+    if (saving) return;
     if (!novoNome.trim()) return toast.error("Nome obrigatório");
-    const { data: { user } } = await supabase.auth.getUser();
-    const { data, error } = await supabase.from("clientes").insert({ user_id: user!.id, nome: novoNome.trim(), telefone: novoTel || null }).select().single();
-    if (error) return toast.error(error.message);
-    setClientes((c) => [...c, data]);
-    setClienteSel(data);
-    setNovoCliente(false); setNovoNome(""); setNovoTel("");
-    toast.success("Cliente cadastrado");
+    setSaving(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data, error } = await supabase.from("clientes").insert({ user_id: user!.id, nome: novoNome.trim(), telefone: novoTel || null }).select().single();
+      if (error) throw error;
+      setClientes((c) => [...c, data]);
+      setClienteSel(data);
+      setNovoCliente(false); setNovoNome(""); setNovoTel("");
+      toast.success("Cliente cadastrado");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const finalizar = async () => {
+    if (saving) return;
     if (!pedidoNome.trim()) return toast.error("Informe o nome do pedido");
     const valorNum = parseFloat(pedidoValor.replace(",", "."));
     if (!valorNum || valorNum <= 0) return toast.error("Informe um valor válido");
